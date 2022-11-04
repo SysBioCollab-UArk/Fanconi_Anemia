@@ -5,23 +5,38 @@ import matplotlib.pyplot as plt
 
 Model()
 
-Monomer("A", ["b"])
-Monomer("B", ["a"])
+Monomer("FANCA", ["fancg", "faap20"])
+Monomer("FANCG", ["fanca"])
+Monomer("FAAP20", ["fanca"])
 
-Parameter("A_0", 100)
-Parameter("B_0", 80)
+Monomer("FANCB", ["fancl", "faap100"])
+Monomer("FANCL", ["fancb", "faap100"])
+Monomer("FAAP100", ["fancb", "fancl"])
 
-Initial(A(b=None), A_0)
-Initial(B(a=None), B_0)
+Monomer("FANCF", ["fancc"])
+Monomer("FANCC", ["fancf", "fance"])
+Monomer("FANCE", ["fancc"])
 
-Parameter("Kf_AB", 1)
-Parameter("Kr_AB", 10)
+Parameter("FANCA_0", 100)
+Parameter("FANCG_0", 80)
+Parameter("FAAP20_0", 120)
 
-Rule("A_binds_B", A(b=None) + B(a=None) | A(b=1) % B(a=1), Kf_AB, Kr_AB)
+Initial(FANCA(fancg=None, faap20=None), FANCA_0)
+Initial(FANCG(fanca=None), FANCG_0)
+Initial(FAAP20(fanca=None), FAAP20_0)
 
-Observable("A_free", A(b=None))
-Observable("B_free", B(a=None))
-Observable("AB_complex", A(b=1) % B(a=1))
+# Formination of AG20 complex
+Parameter('kf_AG', 1)
+Parameter('kr_AG', 1)
+Parameter('kf_A20', 1)
+Parameter('kr_A20', 1)
+Rule("FANCA_binds_FANCG", FANCA(fancg=None) + FANCG(fanca=None) | FANCA(fancg=1) % FANCG(fanca=1), kf_AG, kr_AG)
+Rule("FANCA_binds_FAAP20", FANCA(faap20=None) + FAAP20(fanca=None) | FANCA(faap20=1) % FAAP20(fanca=1), kf_A20, kr_A20)
+
+Observable("FANCA_free", FANCA(fancg=None, faap20=None))
+Observable("FANCG_free", FANCG(fanca=None))
+Observable("FAAP20_free", FAAP20(fanca=None))
+Observable("AG20_complex", FANCA(fancg=1, faap20=2) % FANCG(fanca=1) % FAAP20(fanca=2))
 
 # simulation commands
 
