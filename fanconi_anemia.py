@@ -83,7 +83,28 @@ Observable("FAAP100_free", FAAP100(fancb=None, fancl=None))
 Observable("BL100_Complex", FANCB(fancl=1, faap100=2) % FANCL(fancb=1, faap100=3) %
      FAAP100(fancb=2, fancl=3))
 
-# TODO: write rules for CEF complex
+Parameter("FANCC_0", 100)
+Parameter("FANCE_0", 80)
+Parameter("FANCF_0", 120)
+
+Initial(FANCC(fance=None, fancf=None), FANCC_0)
+Initial(FANCE(fancc=None), FANCE_0)
+Initial(FANCF(fancc=None), FANCF_0)
+
+# Formation of CEF complex
+Parameter('kf_CE', 1)
+Parameter('kr_CE', 1)
+Parameter('kf_CF', 1)
+Parameter('kr_CF', 1)
+Rule("FANCC_binds_FANCE", FANCC(fance=None) + FANCE(fancc=None) | FANCC(fance=1) % FANCE(fancc=1), kf_CE, kr_CE)
+Rule("FANCC_binds_FANCF", FANCC(fancf=None) + FANCF(fancc=None) | FANCC(fancf=1) % FANCF(fancc=1), kf_CF, kr_CF)
+
+Observable("FANCC_free", FANCC(fance=None, fancf=None))
+Observable("FANCE_free", FANCE(fancc=None))
+Observable("FANCF_free", FANCF(fancc=None))
+Observable("CEF_complex", FANCC(fance=1, fancf=2) % FANCE(fancc=1) % FANCF(fancc=2))
+
+
 
 # simulation commands
 
