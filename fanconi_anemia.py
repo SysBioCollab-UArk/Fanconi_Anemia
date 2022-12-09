@@ -43,10 +43,20 @@ Parameter('kr_A20', 1)
 Rule("FANCA_binds_FANCG", FANCA(fancg=None) + FANCG(fanca=None) | FANCA(fancg=1) % FANCG(fanca=1), kf_AG, kr_AG)
 Rule("FANCA_binds_FAAP20", FANCA(faap20=None) + FAAP20(fanca=None) | FANCA(faap20=1) % FAAP20(fanca=1), kf_A20, kr_A20)
 
+Parameter('k_AG20_lump', 1e9)
+Rule('AG20_lump', FANCA(fancg=1, faap20=2) % FANCG(fanca=1) % FAAP20(fanca=2) >> AG20(bl100=None, cef=None),
+     k_AG20_lump)
+
+Rule('AG20_FAAP20_unlump', AG20(bl100=None, cef=None) >>
+     FANCA(fancg=1, faap20=None) % FANCG(fanca=1) + FAAP20(fanca=None), kr_A20)
+Rule('AG20_FANCG_unlump', AG20(bl100=None, cef=None) >>
+     FANCA(fancg=None, faap20=1) % FAAP20(fanca=1) + FANCG(fanca=None), kr_AG)
+
+
 # Observable("FANCA_free", FANCA(fancg=None, faap20=None))
 # Observable("FANCG_free", FANCG(fanca=None))
 # Observable("FAAP20_free", FAAP20(fanca=None))
-Observable("AG20_complex", FANCA(fancg=1, faap20=2) % FANCG(fanca=1) % FAAP20(fanca=2))
+# Observable("AG20_complex", FANCA(fancg=1, faap20=2) % FANCG(fanca=1) % FAAP20(fanca=2))
 
 # Formation of BL100 complex
 
@@ -89,10 +99,22 @@ Rule("FANCL_FAAP100_binds_FANCB", FANCL(fancb=None, faap100=1) % FAAP100(fancb=N
      FANCB(fancl=None, faap100=None) | FANCB(fancl=1, faap100=2) % FANCL(fancb=1, faap100=3) %
      FAAP100(fancb=2, fancl=3), kf_L100_B, kr_L100_B)
 
+Parameter('k_BL100_lump', 1e9)
+Rule('BL100_formation', FANCB(fancl=1, faap100=2) % FANCL(fancb=1, faap100=3) % FAAP100(fancb=2, fancl=3) >>
+     BL100(ag20=None, cef=None), k_BL100_lump)
+
+Rule('BL100_FAAP100_unlump', BL100(ag20=None, cef=None) >>
+     FANCB(fancl=1, faap100=None) % FANCL(fancb=1, faap100=None) + FAAP100(fancb=None, fancl=None), kr_BL_100)
+Rule('BL100_FANCL_unlump', BL100(ag20=None, cef=None) >>
+     FANCB(fancl=None, faap100=1) % FAAP100(fancb=1, fancl=None) + FANCL(fancb=None, faap100=None), kr_B100_L)
+Rule('BL100_FANCB_unlump', BL100(ag20=None, cef=None) >>
+     FANCL(fancb=None, faap100=1) % FAAP100(fancb=None, fancl=1) + FANCB(fancl=None, faap100=None), kr_L100_B)
+
+
 # Observable("FANCB_free", FANCB(fancl=None, faap100=None))
 # Observable("FANCL_free", FANCL(fancb=None, faap100=None))
 # Observable("FAAP100_free", FAAP100(fancb=None, fancl=None))
-Observable("BL100_complex", FANCB(fancl=1, faap100=2) % FANCL(fancb=1, faap100=3) % FAAP100(fancb=2, fancl=3))
+# Observable("BL100_complex", FANCB(fancl=1, faap100=2) % FANCL(fancb=1, faap100=3) % FAAP100(fancb=2, fancl=3))
 
 # Formation of CEF complex
 
@@ -112,22 +134,27 @@ Parameter('kr_CF', 1)
 Rule("FANCC_binds_FANCE", FANCC(fance=None) + FANCE(fancc=None) | FANCC(fance=1) % FANCE(fancc=1), kf_CE, kr_CE)
 Rule("FANCC_binds_FANCF", FANCC(fancf=None) + FANCF(fancc=None) | FANCC(fancf=1) % FANCF(fancc=1), kf_CF, kr_CF)
 
+Parameter('k_CEF_lump', 1e9)
+Rule('CEF_lump', FANCC(fance=1, fancf=2) % FANCE(fancc=1) % FANCF(fancc=2) >> CEF(ag20=None, bl100=None),
+     k_CEF_lump)
+
+Rule('CEF_FANCF_unlump', CEF(bl100=None, ag20=None) >>
+     FANCC(fance=1, fancf=None) % FANCE(fancc=1) + FANCF(fancc=None), kr_CF)
+Rule('CEF_FANCE_unlump', CEF(bl100=None, ag20=None) >>
+     FANCC(fance=None, fancf=1) % FANCF(fancc=1) + FANCE(fancc=None), kr_CE)
+
 # Observable("FANCC_free", FANCC(fance=None, fancf=None))
 # Observable("FANCE_free", FANCE(fancc=None))
 # Observable("FANCF_free", FANCF(fancc=None))
-Observable("CEF_complex", FANCC(fance=1, fancf=2) % FANCE(fancc=1) % FANCF(fancc=2))
+# Observable("CEF_complex", FANCC(fance=1, fancf=2) % FANCE(fancc=1) % FANCF(fancc=2))
 
 # Formation of FA core complex (AG20 % BL100 % CEF)
 
-# TODO: Need to think more about how to represent the AG20, BL100, and CEF complexes
-# Specifically, we want to allow the proteins to dissociate from the complexes when they are
-# unbound but not when they are bound in AG20 % BL100, etc., super-complexes
-# An alternative is to add additional binding sites to each protein (e.g., 'fancf' and 'fancb'
-# site to FANCG), but that seems complicated. May be necessary, though. We'll see
 
-Parameter('kf_AG20_form', 1e9)
-Parameter('kr_AG20_form', 1e9)
-Rule('AG20_formation', FANCA(fancg=ANY, faap20=ANY) | AG20(bl100=None, cef=None), kf_AG20_form, kr_AG20_form)
+
+Observable('AG20_total', AG20())
+Observable('BL100_total', BL100())
+Observable('CEF_total', CEF())
 
 ###########
 
@@ -166,7 +193,7 @@ Observable("AG20_BL100_CEF", AG20(bl100=ANY, cef=ANY))
 
 # simulation commands
 
-tspan = np.linspace(0,1,101)
+tspan = np.linspace(0,10,101)
 sim = ScipyOdeSimulator(model, tspan, verbose=True)
 result = sim.run()
 
