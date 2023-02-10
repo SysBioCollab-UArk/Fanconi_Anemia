@@ -189,7 +189,53 @@ Rule("BL100_CEF_binds_AG20", BL100(ag20=None, cef=1) % CEF(ag20=None, bl100=1) +
 Observable("AG20_BL100", AG20(bl100=ANY, cef=None))
 Observable("AG20_CEF", AG20(bl100=None, cef=ANY))
 Observable("BL100_CEF", BL100(ag20=None, cef=ANY))
-Observable("AG20_BL100_CEF", AG20(bl100=ANY, cef=ANY))
+# Observable("AG20_BL100_CEF", AG20(bl100=ANY, cef=ANY))
+
+Monomer("FA_complex", ["fancm", "fanct", "fancd2", "rev1"])
+Parameter('k_AG20_BL100_CEF_lump', 1e9)
+Rule("AG20_BL100_CEF_lump", BL100(ag20=2, cef=1) % CEF(ag20=3, bl100=1) % AG20(bl100=2, cef=3) >>
+     FA_complex(fancm=None, fanct=None, fancd2=None, rev1=None),
+     k_AG20_BL100_CEF_lump)
+
+Rule('FA_complex_BL100_unlump', FA_complex(fancm=None, fanct=None, fancd2=None, rev1=None) >>
+     CEF(ag20=1, bl100=None) % AG20(cef=1, bl100=None) + BL100(ag20=None, cef=None), kr_AG20_CEF_BL100)
+Rule('FA_complex_CEF_unlump', FA_complex(fancm=None, fanct=None, fancd2=None, rev1=None) >>
+     AG20(cef=None, bl100=1) % BL100(ag20=1, cef=None) + CEF(ag20=None, bl100=None), kr_AG20_BL100_CEF)
+Rule('FA_complex_AG20_unlump', FA_complex(fancm=None, fanct=None, fancd2=None, rev1=None) >>
+     BL100(ag20=None, cef=1) % CEF(ag20=None, bl100=1) + AG20(bl100=None, cef=None), kr_BL100_CEF_AG20)
+
+Observable("FA_complex_free", FA_complex(fancm=None, fanct=None, fancd2=None, rev1=None))
+
+
+
+# 1. FA complex binds FANCM
+Monomer("FANCM", ["facpx"])
+Parameter("FANCM_0", 10)
+Initial(FANCM(facpx=None), FANCM_0)
+Parameter("kf_FAcpx_M", 1)
+Parameter("kr_FAcpx_M", 1)
+Rule('FA_complex_binds_FANCM', FA_complex(fancm=None, fanct=None, fancd2=None, rev1=None) + FANCM(facpx=None) |
+     FA_complex(fancm=1, fanct=None, fancd2=None, rev1=None) % FANCM(facpx=1), kf_FAcpx_M, kr_FAcpx_M)
+Observable("FAcpx_FANCM", FA_complex(fancm=1, fanct=None, fancd2=None, rev1=None) % FANCM(facpx=1))
+
+# 2. FA complex % FANCM binds FANCT
+
+
+# 3. I + D2 <> I % D2
+
+
+# 4. FA complex % FANCM % FANCT binds I % D2
+
+
+# 5. ubiquitination of I % D2
+
+
+# 6. release of I % D2 - ub from FA complex % FANCM % FANCT
+
+
+# 7. FA complex % FANCM % FANCT dissociates
+
+
 
 # simulation commands
 
