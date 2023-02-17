@@ -214,26 +214,59 @@ Parameter("FANCM_0", 10)
 Initial(FANCM(facpx=None), FANCM_0)
 Parameter("kf_FAcpx_M", 1)
 Parameter("kr_FAcpx_M", 1)
-Rule('FA_complex_binds_FANCM', FA_complex(fancm=None, fanct=None, fancd2=None, rev1=None) + FANCM(facpx=None) |
+Rule('FAcpx_binds_FANCM', FA_complex(fancm=None, fanct=None, fancd2=None, rev1=None) + FANCM(facpx=None) |
      FA_complex(fancm=1, fanct=None, fancd2=None, rev1=None) % FANCM(facpx=1), kf_FAcpx_M, kr_FAcpx_M)
 Observable("FAcpx_FANCM", FA_complex(fancm=1, fanct=None, fancd2=None, rev1=None) % FANCM(facpx=1))
 
 # 2. FA complex % FANCM binds FANCT
-
+Monomer("FANCT", ["facpx"])
+Parameter("FANCT_0", 10)
+Initial(FANCT(facpx=None), FANCT_0)
+Parameter("kf_FAcpx_T", 1)
+Parameter("kr_FAcpx_T", 1)
+Rule('FAcpx_FANCM_binds_FANCT', FA_complex(fancm=1, fanct=None, fancd2=None, rev1=None) % FANCM(facpx=1)
+     + FANCT(facpx=None) | FA_complex(fancm=1, fanct=2, fancd2=None, rev1=None) % FANCM(facpx=1)
+     % FANCT(facpx=2), kf_FAcpx_T, kr_FAcpx_T)
+Observable("FAcpx_FANCM_FANCT", FA_complex(fancm=ANY, fanct=ANY, fancd2=None, rev1=None))
 
 # 3. I + D2 <> I % D2
-
+Monomer("FANCI", ["fancd2", "state"], {"state": ["x", "ub"]})
+Monomer("FANCD2", ["fanci", "facpx", "state"], {"state": ["x", "ub"]})
+Parameter("FANCI_0", 50)
+Parameter("FANCD2_0", 50)
+Initial(FANCI(fancd2=None, state="x"), FANCI_0)
+Initial(FANCD2(fanci=None, facpx=None, state="x"), FANCD2_0)
+Parameter("kf_fanci_fancd2", 1)
+Parameter("kr_fanci_fancd2", 1)
+Rule('FANCI_binds_FANCD2', FANCI(fancd2=None, state="x") + FANCD2(fanci=None, facpx=None, state="x") |
+     FANCI(fancd2=1, state="x") % FANCD2(fanci=1, facpx=None, state="x"), kf_fanci_fancd2, kr_fanci_fancd2)
+Observable("FANCIx_FANCD2x", FANCI(fancd2=1, state="x") % FANCD2(fanci=1, facpx=None, state="x"))
 
 # 4. FA complex % FANCM % FANCT binds I % D2
+Parameter("kf_FAcpxMT_binds_ID2", 1)
+Parameter("kr_FAcpxMT_binds_ID2", 1)
+Rule("FAcpx_M_T_binds_I_D2", FA_complex(fancm=ANY, fanct=ANY, fancd2=None, rev1=None) +
+     FANCD2(fanci=ANY, facpx=None, state="x") |
+     FA_complex(fancm=ANY, fanct=ANY, fancd2=1, rev1=None) % FANCD2(fanci=ANY, facpx=1, state="x"),
+     kf_FAcpxMT_binds_ID2, kr_FAcpxMT_binds_ID2)
+Observable("FAcpx_M_T_Ix_D2x", FA_complex(fancm=ANY, fanct=ANY, fancd2=1, rev1=None) %
+           FANCD2(fanci=ANY, facpx=1, state="x"))
 
 
 # 5. ubiquitination of I % D2
-
+Parameter("k_ID2_Ubiq", 1)
+Rule("FAcpx_I_D2_Ubiq", FANCI(fancd2=1, state="x") % FANCD2(fanci=1, facpx=ANY, state="x") >>
+     FANCI(fancd2=1, state="ub") % FANCD2(fanci=1, facpx=ANY, state="ub"), k_ID2_Ubiq)
+Observable("FAcpx_FANCIub_FANCD2ub", FANCI(fancd2=1, state="ub") % FANCD2(fanci=1, facpx=ANY, state="ub"))
 
 # 6. release of I % D2 - ub from FA complex % FANCM % FANCT
+Parameter("k_FAcpxMT_release_ID2ub", 10)
+Rule("FAcpx_M_T_release_ID2ub", FA_complex(fancm=ANY, fanct=ANY, fancd2=2, rev1=None) %
+     FANCI(fancd2=1, state="ub") % FANCD2(fanci=1, facpx=2, state="ub") >>
+     FA_complex(fancm=ANY, fanct=ANY, fancd2=None, rev1=None) +
+     FANCI(fancd2=1, state="ub") % FANCD2(fanci=1, facpx=None, state="ub"), k_FAcpxMT_release_ID2ub)
+Observable("ID2_Ub", FANCI(fancd2=1, state="ub") % FANCD2(fanci=1, facpx=None, state="ub"))
 
-
-# 7. FA complex % FANCM % FANCT dissociates
 
 
 
@@ -247,6 +280,6 @@ for obs in model.observables:
     plt.plot(tspan, result.observables[obs.name], lw=2, label=obs.name)
 plt.xlabel('time')
 plt.ylabel('number of molecules')
-plt.legend(loc="best")
+plt.legend(loc="best", ncol=2, fontsize=6)
 
 plt.show()
