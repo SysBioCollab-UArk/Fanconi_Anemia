@@ -267,7 +267,11 @@ Rule("FAcpx_M_T_release_ID2ub", FA_complex(fancm=ANY, fanct=ANY, fancd2=2, rev1=
      FANCI(fancd2=1, state="ub") % FANCD2(fanci=1, facpx=None, state="ub"), k_FAcpxMT_release_ID2ub)
 Observable("ID2_Ub", FANCI(fancd2=1, state="ub") % FANCD2(fanci=1, facpx=None, state="ub"))
 
+# 7. Reversible binding of UAF1 and USP1
 
+# 8. Deubiquitination of ID2 by UAF1 and USP1
+
+# 9. FANCP binds to ID2-Ub
 
 
 # simulation commands
