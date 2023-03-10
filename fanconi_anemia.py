@@ -10,7 +10,7 @@ Monomer('DSB')
 Monomer('Lesion', ['rev1'])
 
 Parameter('ICL_0', 100)
-Initial(ICL(b=0), ICL_0)
+Initial(ICL(b=None), ICL_0)
 
 # Proteins
 
@@ -211,7 +211,7 @@ Observable("FA_complex_free", FA_complex(fancm=None, fanct=None, fancd2=None, re
 # 0. FANCM binds to DNA at damage site
 Monomer("FANCM", ['icl', "facpx"])
 Parameter("FANCM_0", 10)
-Initial(FANCM(facpx=None), FANCM_0)
+Initial(FANCM(icl=None, facpx=None), FANCM_0)
 Parameter('kf_M_bind_icl', 1)
 Parameter('kr_M_bind_icl', 0.01)
 Rule('FANCM_binds_ICL', FANCM(icl=None, facpx=None) + ICL(b=None) | FANCM(icl=1, facpx=None) % ICL(b=1),
@@ -332,6 +332,9 @@ Parameter('k_unhook', 10)
 Rule('DSB_and_DNA_lesion_creation', FANCQ(fancp=1) % FANCP(fanci=ANY, fancd2=2, fancq=1) % FANCD2(fancp=2, icl=3)
      % ICL(b=3) >> FANCQ(fancp=1) % FANCP(fanci=ANY, fancd2=2, fancq=1) % FANCD2(fancp=2, icl=None)
      + DSB() + Lesion(rev1=None), k_unhook)
+Observable('Iterstrand_crosslinks', ICL())
+Observable('Double_strand_breaks', DSB())
+Observable('DNA_lesions', Lesion())
 
 # TODO: Add rules for double strand break repair AND translesion synthesis
 # TODO: Sabrina = DSB repair pathway
@@ -339,7 +342,9 @@ Rule('DSB_and_DNA_lesion_creation', FANCQ(fancp=1) % FANCP(fanci=ANY, fancd2=2, 
 
 # ...
 
-# DSB >> None ==> DNA repair
+# temporary
+Parameter('k_dsb_repair', 0.1)
+Rule('DSB_repair', DSB() >> None, k_dsb_repair)
 
 # simulation commands
 
@@ -347,10 +352,23 @@ tspan = np.linspace(0, 10, 101)
 sim = ScipyOdeSimulator(model, tspan, verbose=True)
 result = sim.run()
 
+mutations = ['Iterstrand_crosslinks', 'Double_strand_breaks', 'DNA_lesions']
+
+plt.figure('complexes')
+plt.figure('mutations')
 for obs in model.observables:
+    if obs.name not in mutations:
+        plt.figure('complexes')
+    else:
+        plt.figure('mutations')
     plt.plot(tspan, result.observables[obs.name], lw=2, label=obs.name)
+plt.figure('complexes')
 plt.xlabel('time')
 plt.ylabel('number of molecules')
-plt.legend(loc="best", ncol=2, fontsize=6)
+plt.legend(loc="best", ncol=3, fontsize=6)
+plt.figure('mutations')
+plt.xlabel('time')
+plt.ylabel('number of molecules')
+plt.legend(loc="best")  # , ncol=2, fontsize=6)
 
 plt.show()
