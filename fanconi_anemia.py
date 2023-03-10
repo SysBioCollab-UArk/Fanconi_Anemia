@@ -5,6 +5,13 @@ import matplotlib.pyplot as plt
 
 Model()
 
+Monomer('ICL', ['b'])  # stalled replication fork
+Monomer('DSB')
+Monomer('Lesion', ['rev1'])
+
+Parameter('ICL_0', 100)
+Initial(ICL(b=0), ICL_0)
+
 # Proteins
 
 Monomer("FANCA", ["fancg", "faap20"])
@@ -51,7 +58,6 @@ Rule('AG20_FAAP20_unlump', AG20(bl100=None, cef=None) >>
      FANCA(fancg=1, faap20=None) % FANCG(fanca=1) + FAAP20(fanca=None), kr_A20)
 Rule('AG20_FANCG_unlump', AG20(bl100=None, cef=None) >>
      FANCA(fancg=None, faap20=1) % FAAP20(fanca=1) + FANCG(fanca=None), kr_AG)
-
 
 # Observable("FANCA_free", FANCA(fancg=None, faap20=None))
 # Observable("FANCG_free", FANCG(fanca=None))
@@ -110,7 +116,6 @@ Rule('BL100_FANCL_unlump', BL100(ag20=None, cef=None) >>
 Rule('BL100_FANCB_unlump', BL100(ag20=None, cef=None) >>
      FANCL(fancb=None, faap100=1) % FAAP100(fancb=None, fancl=1) + FANCB(fancl=None, faap100=None), kr_L100_B)
 
-
 # Observable("FANCB_free", FANCB(fancl=None, faap100=None))
 # Observable("FANCL_free", FANCL(fancb=None, faap100=None))
 # Observable("FAAP100_free", FAAP100(fancb=None, fancl=None))
@@ -149,9 +154,6 @@ Rule('CEF_FANCE_unlump', CEF(bl100=None, ag20=None) >>
 # Observable("CEF_complex", FANCC(fance=1, fancf=2) % FANCE(fancc=1) % FANCF(fancc=2))
 
 # Formation of FA core complex (AG20 % BL100 % CEF)
-
-
-
 Observable('AG20_total', AG20())
 Observable('BL100_total', BL100())
 Observable('CEF_total', CEF())
@@ -206,17 +208,21 @@ Rule('FA_complex_AG20_unlump', FA_complex(fancm=None, fanct=None, fancd2=None, r
 
 Observable("FA_complex_free", FA_complex(fancm=None, fanct=None, fancd2=None, rev1=None))
 
-
-
-# 1. FA complex binds FANCM
-Monomer("FANCM", ["facpx"])
+# 0. FANCM binds to DNA at damage site
+Monomer("FANCM", ['icl', "facpx"])
 Parameter("FANCM_0", 10)
 Initial(FANCM(facpx=None), FANCM_0)
+Parameter('kf_M_bind_icl', 1)
+Parameter('kr_M_bind_icl', 0.01)
+Rule('FANCM_binds_ICL', FANCM(icl=None, facpx=None) + ICL(b=None) | FANCM(icl=1, facpx=None) % ICL(b=1),
+     kf_M_bind_icl, kr_M_bind_icl)
+
+# 1. FA complex binds FANCM
 Parameter("kf_FAcpx_M", 1)
 Parameter("kr_FAcpx_M", 1)
-Rule('FAcpx_binds_FANCM', FA_complex(fancm=None, fanct=None, fancd2=None, rev1=None) + FANCM(facpx=None) |
-     FA_complex(fancm=1, fanct=None, fancd2=None, rev1=None) % FANCM(facpx=1), kf_FAcpx_M, kr_FAcpx_M)
-Observable("FAcpx_FANCM", FA_complex(fancm=1, fanct=None, fancd2=None, rev1=None) % FANCM(facpx=1))
+Rule('FAcpx_binds_FANCM', FA_complex(fancm=None, fanct=None, fancd2=None, rev1=None) + FANCM(icl=ANY, facpx=None) |
+     FA_complex(fancm=1, fanct=None, fancd2=None, rev1=None) % FANCM(icl=ANY, facpx=1), kf_FAcpx_M, kr_FAcpx_M)
+Observable("FAcpx_FANCM", FA_complex(fancm=1, fanct=None, fancd2=None, rev1=None) % FANCM(icl=ANY, facpx=1))
 
 # 2. FA complex % FANCM binds FANCT
 Monomer("FANCT", ["facpx"])
@@ -224,49 +230,55 @@ Parameter("FANCT_0", 10)
 Initial(FANCT(facpx=None), FANCT_0)
 Parameter("kf_FAcpx_T", 1)
 Parameter("kr_FAcpx_T", 1)
-Rule('FAcpx_FANCM_binds_FANCT', FA_complex(fancm=1, fanct=None, fancd2=None, rev1=None) % FANCM(facpx=1)
-     + FANCT(facpx=None) | FA_complex(fancm=1, fanct=2, fancd2=None, rev1=None) % FANCM(facpx=1)
+Rule('FAcpx_FANCM_binds_FANCT', FA_complex(fancm=1, fanct=None, fancd2=None, rev1=None) % FANCM(icl=ANY, facpx=1)
+     + FANCT(facpx=None) | FA_complex(fancm=1, fanct=2, fancd2=None, rev1=None) % FANCM(icl=ANY, facpx=1)
      % FANCT(facpx=2), kf_FAcpx_T, kr_FAcpx_T)
 Observable("FAcpx_FANCM_FANCT", FA_complex(fancm=ANY, fanct=ANY, fancd2=None, rev1=None))
 
 # 3. I + D2 <> I % D2
 Monomer("FANCI", ["fancd2", 'fancp', "state"], {"state": ["x", "ub"]})
-Monomer("FANCD2", ["fanci", "facpx", 'fancp', "state"], {"state": ["x", "ub"]})
+Monomer("FANCD2", ["fanci", "facpx", 'fancp', 'icl', "state"], {"state": ["x", "ub"]})
 Parameter("FANCI_0", 50)
 Parameter("FANCD2_0", 50)
 Initial(FANCI(fancd2=None, fancp=None, state="x"), FANCI_0)
-Initial(FANCD2(fanci=None, facpx=None, fancp=None, state="x"), FANCD2_0)
+Initial(FANCD2(fanci=None, facpx=None, fancp=None, icl=None, state="x"), FANCD2_0)
 Parameter("kf_fanci_fancd2", 1)
 Parameter("kr_fanci_fancd2", 1)
-Rule('FANCI_binds_FANCD2', FANCI(fancd2=None, fancp=None, state="x") + FANCD2(fanci=None, facpx=None, fancp=None, state="x") |
-     FANCI(fancd2=1, fancp=None, state="x") % FANCD2(fanci=1, facpx=None, fancp=None, state="x"), kf_fanci_fancd2, kr_fanci_fancd2)
-Observable("FANCIx_FANCD2x", FANCI(fancd2=1, fancp=None, state="x") % FANCD2(fanci=1, facpx=None, fancp=None, state="x"))
+Rule('FANCI_binds_FANCD2',
+     FANCI(fancd2=None, fancp=None, state="x") + FANCD2(fanci=None, facpx=None, fancp=None, icl=None, state="x") |
+     FANCI(fancd2=1, fancp=None, state="x") % FANCD2(fanci=1, facpx=None, fancp=None, icl=None, state="x"),
+     kf_fanci_fancd2, kr_fanci_fancd2)
+Observable("FANCIx_FANCD2x",
+           FANCI(fancd2=1, fancp=None, state="x") % FANCD2(fanci=1, facpx=None, fancp=None, icl=None, state="x"))
 
 # 4. FA complex % FANCM % FANCT binds I % D2
 Parameter("kf_FAcpxMT_binds_ID2", 1)
 Parameter("kr_FAcpxMT_binds_ID2", 1)
 Rule("FAcpx_M_T_binds_I_D2",
-     FA_complex(fancm=ANY, fanct=ANY, fancd2=None, rev1=None) + FANCD2(fanci=ANY, facpx=None, fancp=None, state="x") |
-     FA_complex(fancm=ANY, fanct=ANY, fancd2=1, rev1=None) % FANCD2(fanci=ANY, facpx=1, fancp=None, state="x"),
+     FA_complex(fancm=ANY, fanct=ANY, fancd2=None, rev1=None) +
+     FANCD2(fanci=ANY, facpx=None, fancp=None, icl=None, state="x") |
+     FA_complex(fancm=ANY, fanct=ANY, fancd2=1, rev1=None) %
+     FANCD2(fanci=ANY, facpx=1, fancp=None, icl=None, state="x"),
      kf_FAcpxMT_binds_ID2, kr_FAcpxMT_binds_ID2)
 Observable("FAcpx_M_T_Ix_D2x",
-           FA_complex(fancm=ANY, fanct=ANY, fancd2=1, rev1=None) % FANCD2(fanci=ANY, facpx=1, fancp=None, state="x"))
+           FA_complex(fancm=ANY, fanct=ANY, fancd2=1, rev1=None) %
+           FANCD2(fanci=ANY, facpx=1, fancp=None, icl=None, state="x"))
 
 # 5. ubiquitination of I % D2
 Parameter("k_ID2_Ubiq", 1)
 Rule("FAcpx_I_D2_Ubiq",
-     FANCI(fancd2=1, fancp=None, state="x") % FANCD2(fanci=1, facpx=ANY, fancp=None, state="x") >>
-     FANCI(fancd2=1, fancp=None, state="ub") % FANCD2(fanci=1, facpx=ANY, fancp=None, state="ub"), k_ID2_Ubiq)
+     FANCI(fancd2=1, fancp=None, state="x") % FANCD2(fanci=1, facpx=ANY, fancp=None, icl=None, state="x") >>
+     FANCI(fancd2=1, fancp=None, state="ub") % FANCD2(fanci=1, facpx=ANY, fancp=None, icl=None, state="ub"), k_ID2_Ubiq)
 Observable("FAcpx_FANCIub_FANCD2ub",
-           FANCI(fancd2=1, fancp=None, state="ub") % FANCD2(fanci=1, facpx=ANY, fancp=None, state="ub"))
+           FANCI(fancd2=1, fancp=None, state="ub") % FANCD2(fanci=1, facpx=ANY, fancp=None, icl=None, state="ub"))
 
 # 6. release of ID2-Ub from FA complex % FANCM % FANCT
 Parameter("k_FAcpxMT_release_ID2ub", 10)
 Rule("FAcpx_M_T_release_ID2ub",
-     FA_complex(fancm=ANY, fanct=ANY, fancd2=2, rev1=None) % FANCI(fancd2=1, fancp=None, state="ub") %
-     FANCD2(fanci=1, facpx=2, fancp=None, state="ub") >>
-     FA_complex(fancm=ANY, fanct=ANY, fancd2=None, rev1=None) +
-     FANCI(fancd2=1, fancp=None, state="ub") % FANCD2(fanci=1, facpx=None, fancp=None, state="ub"),
+     FA_complex(fancm=3, fanct=ANY, fancd2=2, rev1=None) % FANCM(facpx=3, icl=4) % ICL(b=4) %
+     FANCI(fancd2=1, fancp=None, state="ub") % FANCD2(fanci=1, facpx=2, fancp=None, state="ub") >>
+     FA_complex(fancm=3, fanct=ANY, fancd2=None, rev1=None) % FANCM(facpx=3, icl=None) +
+     FANCI(fancd2=1, fancp=None, state="ub") % FANCD2(fanci=1, facpx=None, fancp=None, icl=2, state="ub") % ICL(b=2),
      k_FAcpxMT_release_ID2ub)
 Observable("ID2_Ub", FANCI(fancd2=1, fancp=None, state="ub") % FANCD2(fanci=1, facpx=None, fancp=None, state="ub"))
 
@@ -285,10 +297,10 @@ Observable('UAF1_USP1', UAF1(usp1=1) % USP1(uaf1=1))
 # 8. Deubiquitination of ID2-Ub by UAF1 and USP1
 Parameter('k_ID2_deubiq', 0.01)
 Rule('ID2_deubiqitination',
-     FANCI(fancd2=1, fancp=None, state="ub") % FANCD2(fanci=1, facpx=None, fancp=None, state="ub") +
+     FANCI(fancd2=1, fancp=None, state="ub") % FANCD2(fanci=1, facpx=None, fancp=None, icl=2, state="ub") % ICL(b=2) +
      UAF1(usp1=1) % USP1(uaf1=1) >>
-     FANCI(fancd2=1, fancp=None, state="x") % FANCD2(fanci=1, facpx=None, fancp=None, state="x") +
-     UAF1(usp1=1) % USP1(uaf1=1), k_ID2_deubiq)
+     FANCI(fancd2=1, fancp=None, state="x") % FANCD2(fanci=1, facpx=None, fancp=None, icl=None, state="x") + ICL(b=None)
+     + UAF1(usp1=1) % USP1(uaf1=1), k_ID2_deubiq)
 
 # 9. FANCP binds to ID2-Ub
 Monomer('FANCP', ['fanci', 'fancd2', 'fancq'])
@@ -298,9 +310,9 @@ Parameter('kf_fancp_ID2Ub', 1)
 Parameter('kr_fancp_ID2Ub', 10)
 Rule('FANCP_binds_ID2Ub',
      FANCP(fanci=None, fancd2=None) +
-     FANCI(fancd2=1, fancp=None, state="ub") % FANCD2(fanci=1, facpx=None, fancp=None, state="ub") |
+     FANCI(fancd2=1, fancp=None, state="ub") % FANCD2(fanci=1, facpx=None, fancp=None, icl=ANY, state="ub") |
      FANCP(fanci=2, fancd2=3) %
-     FANCI(fancd2=1, fancp=2, state="ub") % FANCD2(fanci=1, facpx=None, fancp=3, state="ub"),
+     FANCI(fancd2=1, fancp=2, state="ub") % FANCD2(fanci=1, facpx=None, fancp=3, icl=ANY, state="ub"),
      kf_fancp_ID2Ub, kr_fancp_ID2Ub)
 Observable('FANCP_ID2Ub', FANCP(fanci=ANY, fancd2=ANY, fancq=None))
 
@@ -315,11 +327,23 @@ Rule('FANCQ_binds_FANCP_ID2Ub',
      FANCQ(fancp=1) % FANCP(fanci=ANY, fancd2=ANY, fancq=1), kf_fancq_fancp, kr_fancq_fancp)
 Observable('FANCQ_FANCP_ID2Ub', FANCQ(fancp=ANY))
 
-# TODO: Next steps are double strand break repair OR translesion synthesis
+# 11. Unhooking machinery (FANCP, FANCQ) produce double-strand break and DNA lesion
+Parameter('k_unhook', 10)
+Rule('DSB_and_DNA_lesion_creation', FANCQ(fancp=1) % FANCP(fanci=ANY, fancd2=2, fancq=1) % FANCD2(fancp=2, icl=3)
+     % ICL(b=3) >> FANCQ(fancp=1) % FANCP(fanci=ANY, fancd2=2, fancq=1) % FANCD2(fancp=2, icl=None)
+     + DSB() + Lesion(rev1=None), k_unhook)
+
+# TODO: Add rules for double strand break repair AND translesion synthesis
+# TODO: Sabrina = DSB repair pathway
+# TODO: Alyssa = DNA lesion repair pathway
+
+# ...
+
+# DSB >> None ==> DNA repair
 
 # simulation commands
 
-tspan = np.linspace(0,10,101)
+tspan = np.linspace(0, 10, 101)
 sim = ScipyOdeSimulator(model, tspan, verbose=True)
 result = sim.run()
 
