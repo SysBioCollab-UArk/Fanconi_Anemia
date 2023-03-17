@@ -1,5 +1,7 @@
 from pysb import *
 from pysb.simulator import ScipyOdeSimulator
+from homologous_recombination import create_hr_model_elements
+from translesion_synthesis import create_tls_model_elements
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -332,7 +334,7 @@ Parameter('k_unhook', 10)
 Rule('DSB_and_DNA_lesion_creation', FANCQ(fancp=1) % FANCP(fanci=ANY, fancd2=2, fancq=1) % FANCD2(fancp=2, icl=3)
      % ICL(b=3) >> FANCQ(fancp=1) % FANCP(fanci=ANY, fancd2=2, fancq=1) % FANCD2(fancp=2, icl=None)
      + DSB() + Lesion(rev1=None), k_unhook)
-Observable('Iterstrand_crosslinks', ICL())
+Observable('Interstrand_crosslinks', ICL())
 Observable('Double_strand_breaks', DSB())
 Observable('DNA_lesions', Lesion())
 
@@ -340,9 +342,13 @@ Observable('DNA_lesions', Lesion())
 # TODO: Sabrina = DSB repair pathway
 # TODO: Alyssa = DNA lesion repair pathway
 
-# ...
+# Homologous recombination model elements
+# create_hr_model_elements(DSB())
 
-# temporary
+# Translesion synthesis model elements
+# create_tls_model_elements(Lesion())
+
+# temporary (just so DSBs can be seen on the plot)
 Parameter('k_dsb_repair', 0.1)
 Rule('DSB_repair', DSB() >> None, k_dsb_repair)
 
