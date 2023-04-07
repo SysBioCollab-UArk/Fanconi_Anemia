@@ -8,10 +8,10 @@ import matplotlib.pyplot as plt
 Model()
 
 Monomer('ICL', ['b'])  # stalled replication fork
-Monomer('DSB')
-Monomer('Lesion', ['rev1'])
+Monomer('DSB', ['b'])
+Monomer('Lesion', ['b'])
 
-Parameter('ICL_0', 100)
+
 Initial(ICL(b=None), ICL_0)
 
 # Proteins
