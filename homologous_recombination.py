@@ -1,8 +1,7 @@
 from pysb import *
 
 def create_hr_model_elements(DSB):
-    print('create_hr_rules')
-    #
+
     Monomer("MRN", ["dsb"])
     # MRN Complex (Mre11-Rad50-Nbs1) comes in contact with damaged DNA at 5' ends
     #   - fxn is DNA end resection (pick 5' end and cut it back so we have a 3' overhang on either strand)
