@@ -355,7 +355,7 @@ tspan = np.linspace(0, 10, 101)
 sim = ScipyOdeSimulator(model, tspan, verbose=True)
 result = sim.run()
 
-mutations = ['Iterstrand_crosslinks', 'Double_strand_breaks', 'DNA_lesions']
+mutations = ['Interstrand_crosslinks', 'Double_strand_breaks', 'DNA_lesions']
 
 plt.figure('complexes')
 plt.figure('mutations')
