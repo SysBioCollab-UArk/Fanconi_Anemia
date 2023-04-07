@@ -7,12 +7,21 @@ import matplotlib.pyplot as plt
 
 Model()
 
-Monomer('ICL', ['b'])  # stalled replication fork
-Monomer('DSB', ['b'])
-Monomer('Lesion', ['b'])
+# Shared components
+
+Monomer('ICL', ['b'])  # interstrand crosslinks
+Monomer('DSB', ['b'])  # double strand breaks
+Monomer('Lesion', ['b'])  # DNA lesions
+Monomer("Pol_Zeta", ["dna"])  # DNA polymerase zeta
+Monomer("Ligase", ["dna"])  # DNA ligase
 
 Parameter("ICL_0", 100)
+Parameter("Pol_Zeta_0", 100)
+Parameter("Ligase_0", 100)
+
 Initial(ICL(b=None), ICL_0)
+Initial(Pol_Zeta(dna=None), Pol_Zeta_0)
+Initial(Ligase(dna=None), Ligase_0)
 
 # Proteins
 
@@ -343,11 +352,14 @@ Observable('DNA_lesions', Lesion())
 # TODO: Alyssa = DNA lesion repair pathway
 
 # Homologous recombination model elements
-# create_hr_model_elements(DSB)
+create_hr_model_elements()
+Observable("Pol_Zeta_DSB", Pol_Zeta(dna=1) % DSB(b=1))
+Observable("Ligase_DSB", Ligase(dna=1) % DSB(b=1))
 
 # Translesion synthesis model elements
-# create_tls_model_elements(Lesion)
-
+create_tls_model_elements()
+Observable("Pol_Zeta_Lesion", Pol_Zeta(dna=1) % Lesion(b=1))
+Observable("Ligase_lesion", Ligase(dna=1) % Lesion(b=1))
 
 # simulation commands
 
@@ -355,7 +367,8 @@ tspan = np.linspace(0, 10, 101)
 sim = ScipyOdeSimulator(model, tspan, verbose=True)
 result = sim.run()
 
-mutations = ['Interstrand_crosslinks', 'Double_strand_breaks', 'DNA_lesions']
+mutations = ['Interstrand_crosslinks', 'Double_strand_breaks', 'DNA_lesions', 'Pol_Zeta_DSB', 'Ligase_DSB',
+             'Pol_Zeta_Lesion', 'Ligase_lesion']
 
 plt.figure('complexes')
 plt.figure('mutations')
