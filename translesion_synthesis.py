@@ -5,15 +5,15 @@ from pysb.util import alias_model_components
 def create_tls_model_elements():
 
     # Monomers
-    Monomer("RAD238", ["xpc"])
-    Monomer("XPC", ["rad238", "lesion"])
+    Monomer("RAD23B", ["xpc"])
+    Monomer("XPC", ["rad23b", "lesion"])
     Monomer("TFIIH", ["lesion", "xpd"])
     Monomer("XPD", ["tfiih"])
     Monomer("ERCC1", ["xpf", "lesion"])
     Monomer("XPF", ["ercc1"])
 
     # Initials (Parameters)
-    Parameter("RAD238_0", 100)
+    Parameter("RAD23B_0", 100)
     Parameter("XPC_0", 100)
     Parameter("TFIIH_0", 100)
     Parameter("XPD_0", 100)
@@ -22,8 +22,8 @@ def create_tls_model_elements():
 
     Parameter('kf_XPC_lesion', 1)
     Parameter('kr_XPC_lesion', 1)
-    Parameter('kf_RAD238_XPC_lesion', 1)
-    Parameter('kr_RAD238_XPC_lesion', 1)
+    Parameter('kf_RAD23B_XPC_lesion', 1)
+    Parameter('kr_RAD23B_XPC_lesion', 1)
     Parameter('k_TFIIH_lesion', 1)
     Parameter('kf_XPD_TFIIH_lesion', 1)
     Parameter('kr_XPD_TFIIH_lesion', 1)
@@ -36,35 +36,35 @@ def create_tls_model_elements():
 
     alias_model_components()
 
-    Initial(RAD238(xpc=None), RAD238_0)
-    Initial(XPC(rad238=None, lesion=None), XPC_0)
+    Initial(RAD23B(xpc=None), RAD23B_0)
+    Initial(XPC(rad23b=None, lesion=None), XPC_0)
     Initial(TFIIH(lesion=None, xpd=None), TFIIH_0)
     Initial(XPD(tfiih=None), XPD_0)
     Initial(ERCC1(xpf=None, lesion=None), ERCC1_0)
     Initial(XPF(ercc1=None), XPF_0)
 
     # Observables
-    Observable("XPC_RAD238_lesion", XPC(lesion=ANY, rad238=ANY))
+    Observable("XPC_RAD23B_lesion", XPC(lesion=ANY, rad23b=ANY))
     Observable("TFIIH_XPD_lesion", TFIIH(lesion=ANY, xpd=ANY))
     Observable("ERCC1_XPF_lesion", ERCC1(lesion=ANY, xpf=ANY))
 
     # Rules (Parameters)
     # steps
-    # 1. RAD238 and XPC detect lesion, leave
+    # 1. RAD23B and XPC detect lesion, leave
     # 2. TFIIH binds to DNA, XPD binds to DNA, unwinds
     # 3. ERCC1 and XPF cleave the damaged sections
     # 4. Polymerase zeta fills gap
     # 5. DNA ligase seals the strands
 
-    Rule("XPC_binds_Lesion", XPC(lesion=None, rad238=None) + Lesion(b=None) | XPC(lesion=1, rad238=None) % Lesion(b=1),
+    Rule("XPC_binds_Lesion", XPC(lesion=None, rad23b=None) + Lesion(b=None) | XPC(lesion=1, rad23b=None) % Lesion(b=1),
          kf_XPC_lesion, kr_XPC_lesion)
 
-    Rule("RAD238_binds_XPC_lesion",
-         RAD238(xpc=None) + XPC(lesion=ANY, rad238=None) | RAD238(xpc=1) % XPC(lesion=ANY, rad238=1),
-         kf_RAD238_XPC_lesion, kr_RAD238_XPC_lesion)
+    Rule("RAD23B_binds_XPC_lesion",
+         RAD23B(xpc=None) + XPC(lesion=ANY, rad23b=None) | RAD23B(xpc=1) % XPC(lesion=ANY, rad23b=1),
+         kf_RAD23B_XPC_lesion, kr_RAD23B_XPC_lesion)
 
-    Rule("TFIIH_binds_lesion", TFIIH(lesion=None, xpd=None) + Lesion(b=2) % RAD238(xpc=1) % XPC(lesion=2, rad238=1) >>
-         TFIIH(lesion=3, xpd=None) % Lesion(b=3) + RAD238(xpc=None) + XPC(lesion=None, rad238=None),
+    Rule("TFIIH_binds_lesion", TFIIH(lesion=None, xpd=None) + Lesion(b=2) % RAD23B(xpc=1) % XPC(lesion=2, rad23b=1) >>
+         TFIIH(lesion=3, xpd=None) % Lesion(b=3) + RAD23B(xpc=None) + XPC(lesion=None, rad23b=None),
          k_TFIIH_lesion)
 
     Rule("XPD_binds_TFIIH_lesion",
