@@ -221,38 +221,50 @@ Observable("FA_complex_free", FA_complex(fancm=None, fanct=None, fancd2=None, re
 
 # 0. FANCM binds to DNA at damage site
 Monomer("FANCM", ['icl', "facpx"])
-Parameter("FANCM_0", 10)
+Parameter("FANCM_0", 100)
 Initial(FANCM(icl=None, facpx=None), FANCM_0)
+Observable('FANCM_tot', FANCM())
+Observable('FANCM_free', FANCM(icl=None, facpx=None))
+Observable('FANCM_icl', FANCM(icl=ANY, facpx=None))
 Parameter('kf_M_bind_icl', 1)
-Parameter('kr_M_bind_icl', 0.01)
+Parameter('kr_M_bind_icl', 100)
 Rule('FANCM_binds_ICL', FANCM(icl=None, facpx=None) + ICL(b=None) | FANCM(icl=1, facpx=None) % ICL(b=1),
      kf_M_bind_icl, kr_M_bind_icl)
 
 # 1. FA complex binds FANCM
 Parameter("kf_FAcpx_M", 1)
-Parameter("kr_FAcpx_M", 1)
-Rule('FAcpx_binds_FANCM', FA_complex(fancm=None, fanct=None, fancd2=None, rev1=None) + FANCM(icl=ANY, facpx=None) |
-     FA_complex(fancm=1, fanct=None, fancd2=None, rev1=None) % FANCM(icl=ANY, facpx=1), kf_FAcpx_M, kr_FAcpx_M)
-Observable("FAcpx_FANCM", FA_complex(fancm=1, fanct=None, fancd2=None, rev1=None) % FANCM(icl=ANY, facpx=1))
+Parameter("kr_FAcpx_M", 10)
+Rule('FAcpx_binds_FANCM', FA_complex(fancm=None, fanct=None, fancd2=None, rev1=None) + FANCM(icl=ANY, facpx=None) >>
+     FA_complex(fancm=1, fanct=None, fancd2=None, rev1=None) % FANCM(icl=ANY, facpx=1), kf_FAcpx_M)
+Rule('FAcpx_ubinds_FANCM', FA_complex(fancm=1, fanct=None, fancd2=None, rev1=None) % FANCM(facpx=1) >>
+     FA_complex(fancm=None, fanct=None, fancd2=None, rev1=None) + FANCM(facpx=None), kr_FAcpx_M)
+Observable("FAcpx_FANCM", FA_complex(fancm=ANY, fanct=None, fancd2=None, rev1=None))
 
 # 2. FA complex % FANCM binds FANCT
 Monomer("FANCT", ["facpx"])
-Parameter("FANCT_0", 10)
+Parameter("FANCT_0", 100)
 Initial(FANCT(facpx=None), FANCT_0)
+Observable('FANCT_tot', FANCT())
+Observable('FANCT_free', FANCT(facpx=None))
 Parameter("kf_FAcpx_T", 1)
-Parameter("kr_FAcpx_T", 1)
+Parameter("kr_FAcpx_T", 10)
 Rule('FAcpx_FANCM_binds_FANCT', FA_complex(fancm=1, fanct=None, fancd2=None, rev1=None) % FANCM(icl=ANY, facpx=1)
-     + FANCT(facpx=None) | FA_complex(fancm=1, fanct=2, fancd2=None, rev1=None) % FANCM(icl=ANY, facpx=1)
-     % FANCT(facpx=2), kf_FAcpx_T, kr_FAcpx_T)
+     + FANCT(facpx=None) >> FA_complex(fancm=1, fanct=2, fancd2=None, rev1=None) % FANCM(icl=ANY, facpx=1)
+     % FANCT(facpx=2), kf_FAcpx_T)
+Rule('FAcpx_FANCM_unbinds_FANCT', FA_complex(fancm=1, fanct=2, fancd2=None, rev1=None) % FANCM(facpx=1)
+     % FANCT(facpx=2) >> FA_complex(fancm=1, fanct=None, fancd2=None, rev1=None) % FANCM(facpx=1)
+     + FANCT(facpx=None), kr_FAcpx_T)
 Observable("FAcpx_FANCM_FANCT", FA_complex(fancm=ANY, fanct=ANY, fancd2=None, rev1=None))
 
 # 3. I + D2 <> I % D2
 Monomer("FANCI", ["fancd2", 'fancp', "state"], {"state": ["x", "ub"]})
 Monomer("FANCD2", ["fanci", "facpx", 'fancp', 'icl', "state"], {"state": ["x", "ub"]})
-Parameter("FANCI_0", 50)
-Parameter("FANCD2_0", 50)
+Parameter("FANCI_0", 200)
+Parameter("FANCD2_0", 200)
 Initial(FANCI(fancd2=None, fancp=None, state="x"), FANCI_0)
 Initial(FANCD2(fanci=None, facpx=None, fancp=None, icl=None, state="x"), FANCD2_0)
+Observable('FANCI_tot', FANCI())
+Observable('FANCD2_tot', FANCD2())
 Parameter("kf_fanci_fancd2", 1)
 Parameter("kr_fanci_fancd2", 1)
 Rule('FANCI_binds_FANCD2',
@@ -282,6 +294,8 @@ Rule("FAcpx_I_D2_Ubiq",
      FANCI(fancd2=1, fancp=None, state="ub") % FANCD2(fanci=1, facpx=ANY, fancp=None, icl=None, state="ub"), k_ID2_Ubiq)
 Observable("FAcpx_FANCIub_FANCD2ub",
            FANCI(fancd2=1, fancp=None, state="ub") % FANCD2(fanci=1, facpx=ANY, fancp=None, icl=None, state="ub"))
+Observable('FANCIub_tot', FANCI(state='ub'))
+Observable('FANCD2ub_tot', FANCD2(state='ub'))
 
 # 6. release of ID2-Ub from FA complex % FANCM % FANCT
 Parameter("k_FAcpxMT_release_ID2ub", 10)
@@ -300,13 +314,13 @@ Parameter('UAF1_0', 100)
 Parameter('USP1_0', 100)
 Initial(UAF1(usp1=None), UAF1_0)
 Initial(USP1(uaf1=None), USP1_0)
-Parameter('kf_uaf1_usp1', 0.01)
-Parameter('kr_uaf1_usp1', 0.5)
+Parameter('kf_uaf1_usp1', 0.01)  # 0.01
+Parameter('kr_uaf1_usp1', 0.5)  # 0.5
 Rule('UAF1_binds_USP1', UAF1(usp1=None) + USP1(uaf1=None) | UAF1(usp1=1) % USP1(uaf1=1), kf_uaf1_usp1, kr_uaf1_usp1)
 Observable('UAF1_USP1', UAF1(usp1=1) % USP1(uaf1=1))
 
 # 8. Deubiquitination of ID2-Ub by UAF1 and USP1
-Parameter('k_ID2_deubiq', 0.01)
+Parameter('k_ID2_deubiq', 0.01)  # 0.01
 Rule('ID2_deubiqitination',
      FANCI(fancd2=1, fancp=None, state="ub") % FANCD2(fanci=1, facpx=None, fancp=None, icl=2, state="ub") % ICL(b=2) +
      UAF1(usp1=1) % USP1(uaf1=1) >>
@@ -363,28 +377,43 @@ Observable("Ligase_lesion", Ligase(dna=1) % Lesion(b=1))
 
 # simulation commands
 
-tspan = np.linspace(0, 10, 101)
+tspan = np.linspace(0, 20, 201)
 sim = ScipyOdeSimulator(model, tspan, verbose=True)
 result = sim.run()
+
+complexes = ['AG20_total', 'BL100_total', 'CEF_total', 'FA_complex_free', 'FAcpx_FANCIub_FANCD2ub', 'FANCQ_FANCP_ID2Ub']
 
 mutations = ['Interstrand_crosslinks', 'Double_strand_breaks', 'DNA_lesions', 'Pol_Zeta_DSB', 'Ligase_DSB',
              'Pol_Zeta_Lesion', 'Ligase_lesion']
 
 plt.figure('complexes')
 plt.figure('mutations')
-for obs in model.observables:
-    if obs.name not in mutations:
-        plt.figure('complexes')
-    else:
+for obs in complexes + mutations:
+    if obs in mutations:
         plt.figure('mutations')
-    plt.plot(tspan, result.observables[obs.name], lw=2, label=obs.name)
+    elif obs in complexes:
+        plt.figure('complexes')
+    plt.plot(tspan, result.observables[obs], lw=2, label=obs)
+
 plt.figure('complexes')
 plt.xlabel('time')
 plt.ylabel('number of molecules')
-plt.legend(loc="best", ncol=3, fontsize=6)
+plt.legend(loc="best", ncol=2)  # , fontsize=6)
+
 plt.figure('mutations')
-plt.xlabel('time')
-plt.ylabel('number of molecules')
+plt.xlabel('time (arbitrary units)')
+plt.ylabel('# of molecules')
 plt.legend(loc="best")  # , ncol=2, fontsize=6)
+
+# DEBUGGING
+plt.figure()
+# obs_debug = ['FANCI_tot', 'FANCD2_tot', 'FANCIx_FANCD2x', 'FANCIub_tot', 'FANCD2ub_tot', 'FANCM_tot', 'FAcpx_FANCM',
+#              'FANCT_tot', 'FANCM_free', 'FANCM_icl']
+obs_debug = ['FANCM_tot', 'FANCM_free', 'FANCM_icl', 'FANCT_tot', 'FANCT_free', 'FAcpx_FANCM', 'FAcpx_FANCM_FANCT',
+             'FANCIx_FANCD2x']
+for obs in obs_debug:
+    plt.plot(tspan, result.observables[obs], lw=2, label=obs)
+plt.legend(loc=0)
+plt.tight_layout()
 
 plt.show()
