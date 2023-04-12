@@ -23,7 +23,7 @@ def create_hr_model_elements():
     Parameter("RPA_0", 100)
     Parameter("Rad51_BRCA2_0", 100)
 
-    Parameter("kf_MRN_DSB", 1)
+    Parameter("kf_MRN_DSB", 0.01)
     Parameter("kr_MRN_DSB", 1)
     Parameter("k_RPA_DSB", 1)
     Parameter("k_Rad51_BRCA2_DSB", 1)
