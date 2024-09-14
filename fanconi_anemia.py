@@ -15,13 +15,17 @@ Monomer('Lesion', ['b'])  # DNA lesions
 Monomer("Pol_Zeta", ["dna"])  # DNA polymerase zeta
 Monomer("Ligase", ["dna"])  # DNA ligase
 
-Parameter("ICL_0", 100)
+Parameter("ICL_0", 0)
 Parameter("Pol_Zeta_0", 100)
 Parameter("Ligase_0", 100)
 
 Initial(ICL(b=None), ICL_0)
 Initial(Pol_Zeta(dna=None), Pol_Zeta_0)
 Initial(Ligase(dna=None), Ligase_0)
+
+# ICL synthesis rule
+Parameter("k_ICL_synth", 1)
+Rule("ICL_synthesis", None >> ICL(b=None), k_ICL_synth)
 
 # Proteins
 
@@ -398,7 +402,7 @@ Observable("Ligase_lesion", Ligase(dna=1) % Lesion(b=1))
 
 # simulation commands
 
-tspan = np.linspace(0, 10, 101)
+tspan = np.linspace(0, 1000, 1001)
 sim = ScipyOdeSimulator(model, tspan, verbose=True)
 result = sim.run()
 
