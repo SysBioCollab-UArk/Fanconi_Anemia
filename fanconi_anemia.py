@@ -5,6 +5,10 @@ from translesion_synthesis import create_tls_model_elements
 import numpy as np
 import matplotlib.pyplot as plt
 
+# todo: Need to investigate why ICL concentration goes to infinity starting around t=200. Guessing that there is a step
+#  where a species is being created that is not being properly recycled, preventing additional ICLs from being
+#  processed. We have looked at the last two steps (10 and 11) so far.
+
 Model()
 
 # Shared components
@@ -24,7 +28,8 @@ Initial(Pol_Zeta(dna=None), Pol_Zeta_0)
 Initial(Ligase(dna=None), Ligase_0)
 
 # ICL synthesis rule
-Parameter("k_ICL_synth", 1)
+f=1
+Parameter("k_ICL_synth", 1/f)
 Rule("ICL_synthesis", None >> ICL(b=None), k_ICL_synth)
 
 # Proteins
@@ -402,7 +407,7 @@ Observable("Ligase_lesion", Ligase(dna=1) % Lesion(b=1))
 
 # simulation commands
 
-tspan = np.linspace(0, 1000, 1001)
+tspan = np.linspace(0, 1000*f, min(10001, int(1000*f)+1))
 sim = ScipyOdeSimulator(model, tspan, verbose=True)
 result = sim.run()
 
@@ -437,14 +442,16 @@ plt.legend(loc="best", fontsize=14)
 plt.tight_layout()
 
 # DEBUGGING
-# plt.figure()
+plt.figure()
+plt.plot(tspan, result.observable(FANCQ(fancp=1) % FANCP(fanci=ANY, fancd2=2, fancq=1) % FANCD2(fancp=2, icl=None)),
+         lw=2, label="FANCQ_FANCP_FANCD2_icl_None")
 # obs_debug = ['FANCI_tot', 'FANCD2_tot', 'FANCIx_FANCD2x', 'FANCIub_tot', 'FANCD2ub_tot', 'FANCM_tot', 'FAcpx_FANCM',
 #              'FANCT_tot', 'FANCM_free', 'FANCM_icl']
 # obs_debug = ['FANCM_tot', 'FANCM_free', 'FANCM_icl', 'FANCT_tot', 'FANCT_free', 'FAcpx_FANCM', 'FAcpx_FANCM_FANCT',
 #              'FANCIx_FANCD2x']
 # for obs in obs_debug:
 #     plt.plot(tspan, result.observables[obs], lw=2, label=obs)
-# plt.legend(loc=0)
-# plt.tight_layout()
+plt.legend(loc=0)
+plt.tight_layout()
 
 plt.show()
