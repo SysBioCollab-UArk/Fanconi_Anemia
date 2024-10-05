@@ -5,9 +5,8 @@ from translesion_synthesis import create_tls_model_elements
 import numpy as np
 import matplotlib.pyplot as plt
 
-# todo: Need to investigate why ICL concentration goes to infinity starting around t=200. Guessing that there is a step
-#  where a species is being created that is not being properly recycled, preventing additional ICLs from being
-#  processed. We have looked at the last two steps (10 and 11) so far.
+# todo: Need to investigate why DNA lesion concentration goes to infinity. Guessing that there is a similar problem to
+#  what we fixed for the ICLS.
 
 Model()
 
@@ -332,10 +331,16 @@ Observable('UAF1_USP1', UAF1(usp1=1) % USP1(uaf1=1))
 
 # 8. Deubiquitination of ID2-Ub by UAF1 and USP1
 Parameter('k_ID2_deubiq', 0.01)  # 0.01
-Rule('ID2_deubiqitination',
+Rule('ID2_ICL_deubiqitination',
      FANCI(fancd2=1, fancp=None, state="ub") % FANCD2(fanci=1, facpx=None, fancp=None, icl=2, state="ub") % ICL(b=2) +
      UAF1(usp1=1) % USP1(uaf1=1) >>
      FANCI(fancd2=1, fancp=None, state="x") % FANCD2(fanci=1, facpx=None, fancp=None, icl=None, state="x") + ICL(b=None)
+     + UAF1(usp1=1) % USP1(uaf1=1), k_ID2_deubiq)
+
+Rule("ID2_free_deubiqitination",
+     FANCI(fancd2=1, fancp=None, state="ub") % FANCD2(fanci=1, facpx=None, fancp=None, icl=None, state="ub") +
+     UAF1(usp1=1) % USP1(uaf1=1) >>
+     FANCI(fancd2=1, fancp=None, state="x") % FANCD2(fanci=1, facpx=None, fancp=None, icl=None, state="x")
      + UAF1(usp1=1) % USP1(uaf1=1), k_ID2_deubiq)
 
 # 9. FANCP binds to ID2-Ub
@@ -407,13 +412,13 @@ Observable("Ligase_lesion", Ligase(dna=1) % Lesion(b=1))
 
 # simulation commands
 
-tspan = np.linspace(0, 1000*f, min(10001, int(1000*f)+1))
+tspan = np.linspace(0, 10*f, min(1001, int(100*f)+1))
 sim = ScipyOdeSimulator(model, tspan, verbose=True)
 result = sim.run()
 
 complexes = ['AG20_total', 'BL100_total', 'CEF_total', 'FAcpx_free', 'FAcpx_ID2ub', 'FANCQ_FANCP_ID2Ub']
 
-mutations = ['Interstrand_crosslinks', 'Double_strand_breaks', 'DNA_lesions']  # , 'Pol_Zeta_DSB', 'Ligase_DSB',
+mutations = ['Interstrand_crosslinks', 'Double_strand_breaks']#, 'DNA_lesions']  # , 'Pol_Zeta_DSB', 'Ligase_DSB',
              # 'Pol_Zeta_Lesion', 'Ligase_lesion']
 
 plt.figure('complexes')
@@ -443,8 +448,27 @@ plt.tight_layout()
 
 # DEBUGGING
 plt.figure()
-plt.plot(tspan, result.observable(FANCQ(fancp=1) % FANCP(fanci=ANY, fancd2=2, fancq=1) % FANCD2(fancp=2, icl=None)),
-         lw=2, label="FANCQ_FANCP_FANCD2_icl_None")
+debug_obs = [(FANCQ(fancp=1) % FANCP(fanci=ANY, fancd2=2, fancq=1) % FANCD2(fancp=2, icl=None),
+              "Q_P_ID2_ub_icl_None"),
+             (FANCQ(fancp=1) % FANCP(fanci=ANY, fancd2=2, fancq=1) % FANCD2(fancp=2, icl=3) % ICL(b=3),
+              "Q_P_ID2_ub_ICL"),
+             (FANCP(fanci=ANY, fancd2=1, fancq=None) % FANCD2(fanci=ANY, facpx=None, fancp=1, icl=ANY, state="ub"),
+              "P_ID2_ub_ICL"),
+             (FANCI(fancd2=1, fancp=None, state="ub") % FANCD2(fanci=1, facpx=None, fancp=None, icl=ANY, state="ub"),
+              "ID2_ub_ICL"),
+             (FANCI(fancd2=1, fancp=None, state="x") % FANCD2(fanci=1, facpx=None, fancp=None, icl=None, state="x"),
+              "ID2_x"),
+             (FANCI(fancd2=None, fancp=None, state="x"),
+              "I_x"),
+             (FANCD2(fanci=None, facpx=None, fancp=None, icl=None, state="x"),
+              "D2_x"),
+             (FANCD2(fanci=ANY, facpx=ANY, fancp=None, icl=None, state="x"),
+              "ID2_x_FAcpx_M_ICL"),
+             (FANCI(fancd2=1, fancp=None, state="ub") % FANCD2(fanci=1, facpx=ANY, fancp=None, icl=None, state="ub") % FANCM(icl=ANY),
+              "ID2_ub_FAcpx_M_ICL")
+             ]
+for obs in debug_obs:
+    plt.plot(tspan, result.observable(obs[0]), lw=2, label=obs[1])
 # obs_debug = ['FANCI_tot', 'FANCD2_tot', 'FANCIx_FANCD2x', 'FANCIub_tot', 'FANCD2ub_tot', 'FANCM_tot', 'FAcpx_FANCM',
 #              'FANCT_tot', 'FANCM_free', 'FANCM_icl']
 # obs_debug = ['FANCM_tot', 'FANCM_free', 'FANCM_icl', 'FANCT_tot', 'FANCT_free', 'FAcpx_FANCM', 'FAcpx_FANCM_FANCT',
