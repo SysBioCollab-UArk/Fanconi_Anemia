@@ -412,13 +412,13 @@ Observable("Ligase_lesion", Ligase(dna=1) % Lesion(b=1))
 
 # simulation commands
 
-tspan = np.linspace(0, 10*f, min(1001, int(100*f)+1))
+tspan = np.linspace(0, 100*f, min(1001, int(1000*f)+1))
 sim = ScipyOdeSimulator(model, tspan, verbose=True)
 result = sim.run()
 
 complexes = ['AG20_total', 'BL100_total', 'CEF_total', 'FAcpx_free', 'FAcpx_ID2ub', 'FANCQ_FANCP_ID2Ub']
 
-mutations = ['Interstrand_crosslinks', 'Double_strand_breaks']#, 'DNA_lesions']  # , 'Pol_Zeta_DSB', 'Ligase_DSB',
+mutations = ['Interstrand_crosslinks', 'Double_strand_breaks', 'DNA_lesions']  # , 'Pol_Zeta_DSB', 'Ligase_DSB',
              # 'Pol_Zeta_Lesion', 'Ligase_lesion']
 
 plt.figure('complexes')
@@ -444,38 +444,6 @@ plt.ylabel('# of molecules', fontsize=16)
 plt.xticks(fontsize=14)
 plt.yticks(fontsize=14)
 plt.legend(loc="best", fontsize=14)
-plt.tight_layout()
-
-# DEBUGGING
-plt.figure()
-debug_obs = [(FANCQ(fancp=1) % FANCP(fanci=ANY, fancd2=2, fancq=1) % FANCD2(fancp=2, icl=None),
-              "Q_P_ID2_ub_icl_None"),
-             (FANCQ(fancp=1) % FANCP(fanci=ANY, fancd2=2, fancq=1) % FANCD2(fancp=2, icl=3) % ICL(b=3),
-              "Q_P_ID2_ub_ICL"),
-             (FANCP(fanci=ANY, fancd2=1, fancq=None) % FANCD2(fanci=ANY, facpx=None, fancp=1, icl=ANY, state="ub"),
-              "P_ID2_ub_ICL"),
-             (FANCI(fancd2=1, fancp=None, state="ub") % FANCD2(fanci=1, facpx=None, fancp=None, icl=ANY, state="ub"),
-              "ID2_ub_ICL"),
-             (FANCI(fancd2=1, fancp=None, state="x") % FANCD2(fanci=1, facpx=None, fancp=None, icl=None, state="x"),
-              "ID2_x"),
-             (FANCI(fancd2=None, fancp=None, state="x"),
-              "I_x"),
-             (FANCD2(fanci=None, facpx=None, fancp=None, icl=None, state="x"),
-              "D2_x"),
-             (FANCD2(fanci=ANY, facpx=ANY, fancp=None, icl=None, state="x"),
-              "ID2_x_FAcpx_M_ICL"),
-             (FANCI(fancd2=1, fancp=None, state="ub") % FANCD2(fanci=1, facpx=ANY, fancp=None, icl=None, state="ub") % FANCM(icl=ANY),
-              "ID2_ub_FAcpx_M_ICL")
-             ]
-for obs in debug_obs:
-    plt.plot(tspan, result.observable(obs[0]), lw=2, label=obs[1])
-# obs_debug = ['FANCI_tot', 'FANCD2_tot', 'FANCIx_FANCD2x', 'FANCIub_tot', 'FANCD2ub_tot', 'FANCM_tot', 'FAcpx_FANCM',
-#              'FANCT_tot', 'FANCM_free', 'FANCM_icl']
-# obs_debug = ['FANCM_tot', 'FANCM_free', 'FANCM_icl', 'FANCT_tot', 'FANCT_free', 'FAcpx_FANCM', 'FAcpx_FANCM_FANCT',
-#              'FANCIx_FANCD2x']
-# for obs in obs_debug:
-#     plt.plot(tspan, result.observables[obs], lw=2, label=obs)
-plt.legend(loc=0)
 plt.tight_layout()
 
 plt.show()
