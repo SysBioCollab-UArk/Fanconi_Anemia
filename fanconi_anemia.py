@@ -5,9 +5,6 @@ from translesion_synthesis import create_tls_model_elements
 import numpy as np
 import matplotlib.pyplot as plt
 
-# todo: Need to investigate why DNA lesion concentration goes to infinity. Guessing that there is a similar problem to
-#  what we fixed for the ICLS.
-
 Model()
 
 # Shared components
