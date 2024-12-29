@@ -1,7 +1,7 @@
 from pysb import *
 from pysb.simulator import ScipyOdeSimulator
 from homologous_recombination import create_hr_model_elements
-from translesion_synthesis import create_tls_model_elements
+from nucleotide_excision_repair import create_ner_model_elements
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -403,7 +403,7 @@ Observable("Pol_Zeta_DSB", Pol_Zeta(dna=1) % DSB(b=1))
 Observable("Ligase_DSB", Ligase(dna=1) % DSB(b=1))
 
 # Translesion synthesis model elements
-create_tls_model_elements()
+create_ner_model_elements()
 Observable("Pol_Zeta_Lesion", Pol_Zeta(dna=1) % Lesion(b=1))
 Observable("Ligase_lesion", Ligase(dna=1) % Lesion(b=1))
 

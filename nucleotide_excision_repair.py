@@ -2,7 +2,7 @@ from pysb import *
 from pysb.util import alias_model_components
 
 
-def create_tls_model_elements():
+def create_ner_model_elements():
 
     # Monomers
     Monomer("RAD23B", ["xpc"])
@@ -117,7 +117,7 @@ if __name__ == "__main__":
     Observable("Pol_Zeta_Lesion", Pol_Zeta(dna=ANY))
     Observable("Ligase_lesion", Ligase(dna=ANY))
 
-    create_tls_model_elements()
+    create_ner_model_elements()
 
     tspan = np.linspace(0,10,1001)
     sim = ScipyOdeSimulator(model,tspan,verbose=True)
