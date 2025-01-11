@@ -5,6 +5,8 @@ from pysb.util import alias_model_components
 def create_ner_model_elements():
 
     # Monomers
+    Monomer("FANCD2_ub", ["b", "lesion"])
+    Monomer("FANCI_ub", ["b", "lesion"])
     Monomer("RAD23B", ["xpc"])
     Monomer("XPC", ["rad23b", "lesion"])
     Monomer("TFIIH", ["lesion", "xpd"])
@@ -13,6 +15,8 @@ def create_ner_model_elements():
     Monomer("XPF", ["ercc1"])
 
     # Initials (Parameters)
+    Parameter("FANCD2_ub_0", 100)
+    Parameter("FANCI_ub_0", 100)
     Parameter("RAD23B_0", 100)
     Parameter("XPC_0", 100)
     Parameter("TFIIH_0", 100)
@@ -20,6 +24,8 @@ def create_ner_model_elements():
     Parameter("ERCC1_0", 100)
     Parameter("XPF_0", 100)
 
+    Parameter("k_bind_FANCD2_FANCI", 1)
+    Parameter("k_unbind_FANCD2_FANCI", 1)
     Parameter('kf_XPC_lesion', 1)
     Parameter('kr_XPC_lesion', 1)
     Parameter('kf_RAD23B_XPC_lesion', 1)
@@ -36,6 +42,8 @@ def create_ner_model_elements():
 
     alias_model_components()
 
+    Initial(FANCD2_ub(b=None), FANCD2_ub_0)
+    Initial(FANCI_ub(b=None), FANCI_ub_0)
     Initial(RAD23B(xpc=None), RAD23B_0)
     Initial(XPC(rad23b=None, lesion=None), XPC_0)
     Initial(TFIIH(lesion=None, xpd=None), TFIIH_0)
@@ -50,19 +58,23 @@ def create_ner_model_elements():
 
     # Rules (Parameters)
     # steps
-    # 1. RAD23B and XPC detect lesion, leave
-    # 2. TFIIH binds to DNA, XPD binds to DNA, unwinds
-    # 3. ERCC1 and XPF cleave the damaged sections
-    # 4. Polymerase zeta fills gap
-    # 5. DNA ligase seals the strands
+    # 1. FANCD2_ub binds FANCI_ub to form complex
+    # 2. FANCD2+FANCI complex binds to lesion.
+    # 2. RAD23B and XPC detect lesion, leave
+    # 3. TFIIH binds to DNA, XPD binds to DNA, unwinds
+    # 4. ERCC1 and XPF cleave the damaged sections
+    # 5. Polymerase zeta fills gap
+    # 6. DNA ligase seals the strands
 
-    Rule("XPC_binds_Lesion", XPC(lesion=None, rad23b=None) + Lesion(b=None) |
-         XPC(lesion=1, rad23b=None) % Lesion(b=1), kf_XPC_lesion, kr_XPC_lesion)
+
+    Rule("XPC_binds_Lesion", XPC(lesion=None, rad23b=None) + Lesion(b=None, fancm=ANY) |
+         XPC(lesion=1, rad23b=None) % Lesion(b=1, fancm=ANY), kf_XPC_lesion, kr_XPC_lesion)
 
     Rule("RAD23B_binds_XPC_lesion",
          RAD23B(xpc=None) + XPC(lesion=ANY, rad23b=None) | RAD23B(xpc=1) % XPC(lesion=ANY, rad23b=1),
          kf_RAD23B_XPC_lesion, kr_RAD23B_XPC_lesion)
 
+    # Todo: Figure out when to detach FANCM-FAcpx-ID2_ub complex from the lesion
     Rule("TFIIH_binds_lesion",
          TFIIH(lesion=None, xpd=None) + Lesion(b=2) % RAD23B(xpc=1) % XPC(lesion=2, rad23b=1) >>
          TFIIH(lesion=3, xpd=None) % Lesion(b=3) + RAD23B(xpc=None) + XPC(lesion=None, rad23b=None),

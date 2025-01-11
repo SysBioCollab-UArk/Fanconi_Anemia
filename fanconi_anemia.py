@@ -11,11 +11,11 @@ Model()
 
 Monomer('ICL', ['b'])  # interstrand crosslinks
 Monomer('DSB', ['b'])  # double strand breaks
-Monomer('Lesion', ['b'])  # DNA lesions
+Monomer('Lesion', ['b', 'fancm'])  # DNA lesions
 Monomer("Pol_Zeta", ["dna"])  # DNA polymerase zeta
 Monomer("Ligase", ["dna"])  # DNA ligase
 
-Parameter("ICL_0", 0)
+Parameter("ICL_0", 100)
 Parameter("Pol_Zeta_0", 100)
 Parameter("Ligase_0", 100)
 
@@ -25,7 +25,7 @@ Initial(Ligase(dna=None), Ligase_0)
 
 # ICL synthesis rule
 f=1
-Parameter("k_ICL_synth", 1/f)
+Parameter("k_ICL_synth", 0/f)
 Rule("ICL_synthesis", None >> ICL(b=None), k_ICL_synth)
 
 # Proteins
@@ -225,16 +225,23 @@ Rule('FA_complex_AG20_unlump', FA_complex(fancm=None, fanct=None, fancd2=None, r
 Observable("FAcpx_free", FA_complex(fancm=None, fanct=None, fancd2=None, rev1=None))
 
 # 0. FANCM binds to DNA at damage site
-Monomer("FANCM", ['icl', "facpx"])
+Monomer("FANCM", ['dna', "facpx"])
 Parameter("FANCM_0", 100)
-Initial(FANCM(icl=None, facpx=None), FANCM_0)
+Initial(FANCM(dna=None, facpx=None), FANCM_0)
 Observable('FANCM_tot', FANCM())
-Observable('FANCM_free', FANCM(icl=None, facpx=None))
-Observable('FANCM_icl', FANCM(icl=ANY, facpx=None))
+Observable('FANCM_free', FANCM(dna=None, facpx=None))
+Observable('FANCM_icl', FANCM(dna=1, facpx=None) % ICL(b=1))
 Parameter('kf_M_bind_icl', 1)
 Parameter('kr_M_bind_icl', 100)
-Rule('FANCM_binds_ICL', FANCM(icl=None, facpx=None) + ICL(b=None) | FANCM(icl=1, facpx=None) % ICL(b=1),
+Rule('FANCM_binds_ICL', FANCM(dna=None, facpx=None) + ICL(b=None) | FANCM(dna=1, facpx=None) % ICL(b=1),
      kf_M_bind_icl, kr_M_bind_icl)
+
+Observable('FANCM_lesion', FANCM(dna=1, facpx=None) % Lesion(fancm=1))
+Parameter('kf_M_bind_lesion', 0.1)
+Parameter('kr_M_bind_lesion', 100)
+Rule('FANCM_binds_Lesion',
+     FANCM(dna=None, facpx=None) + Lesion(fancm=None) | FANCM(dna=1, facpx=None) % Lesion(fancm=1),
+     kf_M_bind_lesion, kr_M_bind_lesion)
 
 # 1. FA complex binds FANCM
 Parameter("kf_FAcpx_M", 1)
@@ -409,7 +416,7 @@ Observable("Ligase_lesion", Ligase(dna=1) % Lesion(b=1))
 
 # simulation commands
 
-tspan = np.linspace(0, 100*f, min(1001, int(1000*f)+1))
+tspan = np.linspace(0, 3*f, min(201, int(200*f)+1))
 sim = ScipyOdeSimulator(model, tspan, verbose=True)
 result = sim.run()
 
