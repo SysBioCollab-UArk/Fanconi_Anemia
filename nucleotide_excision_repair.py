@@ -5,8 +5,6 @@ from pysb.util import alias_model_components
 def create_ner_model_elements():
 
     # Monomers
-    Monomer("FANCD2_ub", ["b", "lesion"])
-    Monomer("FANCI_ub", ["b", "lesion"])
     Monomer("RAD23B", ["xpc"])
     Monomer("XPC", ["rad23b", "lesion"])
     Monomer("TFIIH", ["lesion", "xpd"])
@@ -15,8 +13,6 @@ def create_ner_model_elements():
     Monomer("XPF", ["ercc1"])
 
     # Initials (Parameters)
-    Parameter("FANCD2_ub_0", 100)
-    Parameter("FANCI_ub_0", 100)
     Parameter("RAD23B_0", 100)
     Parameter("XPC_0", 100)
     Parameter("TFIIH_0", 100)
@@ -42,8 +38,6 @@ def create_ner_model_elements():
 
     alias_model_components()
 
-    Initial(FANCD2_ub(b=None), FANCD2_ub_0)
-    Initial(FANCI_ub(b=None), FANCI_ub_0)
     Initial(RAD23B(xpc=None), RAD23B_0)
     Initial(XPC(rad23b=None, lesion=None), XPC_0)
     Initial(TFIIH(lesion=None, xpd=None), TFIIH_0)
