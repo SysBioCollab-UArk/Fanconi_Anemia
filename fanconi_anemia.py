@@ -11,7 +11,7 @@ Model()
 
 Monomer('ICL', ['b'])  # interstrand crosslinks
 Monomer('DSB', ['b'])  # double strand breaks
-Monomer('Lesion', ['b', 'fancm'])  # DNA lesions
+Monomer('Lesion', ['fanc', 'ner'])  # DNA lesions
 Monomer("Pol_Zeta", ["dna"])  # DNA polymerase zeta
 Monomer("Ligase", ["dna"])  # DNA ligase
 
@@ -236,11 +236,11 @@ Parameter('kr_M_bind_icl', 100)
 Rule('FANCM_binds_ICL', FANCM(dna=None, facpx=None) + ICL(b=None) | FANCM(dna=1, facpx=None) % ICL(b=1),
      kf_M_bind_icl, kr_M_bind_icl)
 
-Observable('FANCM_lesion', FANCM(dna=1, facpx=None) % Lesion(fancm=1))
-Parameter('kf_M_bind_lesion', 0.1)
+Observable('FANCM_lesion', FANCM(dna=1, facpx=None) % Lesion(fanc=1))
+Parameter('kf_M_bind_lesion', 1)
 Parameter('kr_M_bind_lesion', 100)
 Rule('FANCM_binds_Lesion',
-     FANCM(dna=None, facpx=None) + Lesion(fancm=None) | FANCM(dna=1, facpx=None) % Lesion(fancm=1),
+     FANCM(dna=None, facpx=None) + Lesion(fanc=None) | FANCM(dna=1, facpx=None) % Lesion(fanc=1),
      kf_M_bind_lesion, kr_M_bind_lesion)
 
 # 1. FA complex binds FANCM
@@ -322,10 +322,10 @@ Rule("FAcpx_M_T_ICL_release_ID2ub",
 
 Parameter("k_FAcpxMT_Lesion_release_ID2ub", 1)
 Rule("FAcpx_M_T_Lesion_release_ID2ub",
-     FA_complex(fancm=3, fanct=ANY, fancd2=2, rev1=None) % FANCM(facpx=3, dna=4) % Lesion(b=4) %
+     FA_complex(fancm=3, fanct=ANY, fancd2=2, rev1=None) % FANCM(facpx=3, dna=4) % Lesion(fanc=4) %
      FANCI(fancd2=1, fancp=None, state="ub") % FANCD2(fanci=1, facpx=2, fancp=None, dna=None, state="ub") >>
      FA_complex(fancm=3, fanct=ANY, fancd2=None, rev1=None) % FANCM(facpx=3, dna=None) +
-     FANCI(fancd2=1, fancp=None, state="ub") % FANCD2(fanci=1, facpx=None, fancp=None, dna=2, state="ub") % Lesion(b=2),
+     FANCI(fancd2=1, fancp=None, state="ub") % FANCD2(fanci=1, facpx=None, fancp=None, dna=2, state="ub") % Lesion(fanc=2),
      k_FAcpxMT_Lesion_release_ID2ub)
 
 Observable("ID2_Ub", FANCI(fancd2=1, fancp=None, state="ub") % FANCD2(fanci=1, facpx=None, fancp=None, state="ub"))
@@ -351,9 +351,9 @@ Rule('ID2_ICL_deubiqitination',
      + UAF1(usp1=1) % USP1(uaf1=1), k_ID2_deubiq)
 
 Rule('ID2_Lesion_deubiqitination',
-     FANCI(fancd2=1, fancp=None, state="ub") % FANCD2(fanci=1, facpx=None, fancp=None, dna=2, state="ub") % Lesion(b=2) +
+     FANCI(fancd2=1, fancp=None, state="ub") % FANCD2(fanci=1, facpx=None, fancp=None, dna=2, state="ub") % Lesion(fanc=2) +
      UAF1(usp1=1) % USP1(uaf1=1) >>
-     FANCI(fancd2=1, fancp=None, state="x") % FANCD2(fanci=1, facpx=None, fancp=None, dna=None, state="x") + Lesion(b=None)
+     FANCI(fancd2=1, fancp=None, state="x") % FANCD2(fanci=1, facpx=None, fancp=None, dna=None, state="x") + Lesion(fanc=None)
      + UAF1(usp1=1) % USP1(uaf1=1), k_ID2_deubiq)
 
 Rule("ID2_free_deubiqitination",
@@ -410,11 +410,17 @@ Parameter('k_unhook', 10)
 Rule('DSB_and_DNA_lesion_creation',
      FANCQ(fancp=1) % FANCP(fanci=ANY, fancd2=2, fancq=1) % FANCD2(fancp=2, dna=3) % ICL(b=3) >>
      FANCQ(fancp=1) % FANCP(fanci=ANY, fancd2=2, fancq=1) % FANCD2(fancp=2, dna=None) + DSB(b=None) +
-     Lesion(b=None, fancm=None),
+     Lesion(ner=None, fanc=None),
      k_unhook)
 Observable('Interstrand_crosslinks', ICL())
 Observable('Double_strand_breaks', DSB())
 Observable('DNA_lesions', Lesion())
+
+
+Observable("Lesion_free", Lesion(ner=None, fanc=None))
+Observable("Lesion_ner_ANY_fanc_None", Lesion(ner=ANY, fanc=None))
+Observable("Lesion_ner_None_fanc_ANY", Lesion(ner=None, fanc=ANY))
+Observable("Lesion_ner_ANY_fanc_ANY", Lesion(ner=ANY, fanc=ANY))
 
 # TODO: Add rules for double strand break repair AND translesion synthesis
 # TODO: Sabrina = DSB repair pathway
@@ -425,14 +431,14 @@ create_hr_model_elements()
 Observable("Pol_Zeta_DSB", Pol_Zeta(dna=1) % DSB(b=1))
 Observable("Ligase_DSB", Ligase(dna=1) % DSB(b=1))
 
-# Translesion synthesis model elements
+# Nucleotide Excision Repair model elements
 create_ner_model_elements()
-Observable("Pol_Zeta_Lesion", Pol_Zeta(dna=1) % Lesion(b=1))
-Observable("Ligase_lesion", Ligase(dna=1) % Lesion(b=1))
+Observable("Pol_Zeta_Lesion", Pol_Zeta(dna=1) % Lesion(ner=1))
+Observable("Ligase_lesion", Ligase(dna=1) % Lesion(ner=1))
 
 # simulation commands
 
-tspan = np.linspace(0, 10*f, min(201, int(200*f)+1))
+tspan = np.linspace(0, 50*f, min(201, int(200*f)+1))
 sim = ScipyOdeSimulator(model, tspan, verbose=True)
 result = sim.run()
 
@@ -464,6 +470,15 @@ plt.ylabel('# of molecules', fontsize=16)
 plt.xticks(fontsize=14)
 plt.yticks(fontsize=14)
 plt.legend(loc="best", fontsize=14)
+plt.tight_layout()
+
+plt.figure()
+obs2plot=["DNA_lesions", "FANCM_lesion", 'FANCM_tot', 'FANCM_free', "Lesion_free", "Lesion_ner_ANY_fanc_None",
+          "Lesion_ner_None_fanc_ANY", "Lesion_ner_ANY_fanc_ANY"]
+for obs in obs2plot:
+    plt.plot(tspan, result.observables[obs], lw=2, label=obs)
+plt.plot(tspan, result.observable(Lesion(fanc=None)), lw=2, label='Lesion_fancm_None')
+plt.legend(loc="best", ncol=2)
 plt.tight_layout()
 
 plt.show()

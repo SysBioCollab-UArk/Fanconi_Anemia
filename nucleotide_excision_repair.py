@@ -61,17 +61,17 @@ def create_ner_model_elements():
     # 6. DNA ligase seals the strands
 
 
-    Rule("XPC_binds_Lesion", XPC(lesion=None, rad23b=None) + Lesion(b=None, fancm=ANY) |
-         XPC(lesion=1, rad23b=None) % Lesion(b=1, fancm=ANY), kf_XPC_lesion, kr_XPC_lesion)
+    Rule("XPC_binds_Lesion",
+         XPC(lesion=None, rad23b=None) + Lesion(ner=None, fanc=1) % FANCM(dna=1) |
+         XPC(lesion=2, rad23b=None) % Lesion(ner=2, fanc=1) % FANCM(dna=1), kf_XPC_lesion, kr_XPC_lesion)
 
     Rule("RAD23B_binds_XPC_lesion",
          RAD23B(xpc=None) + XPC(lesion=ANY, rad23b=None) | RAD23B(xpc=1) % XPC(lesion=ANY, rad23b=1),
          kf_RAD23B_XPC_lesion, kr_RAD23B_XPC_lesion)
 
-    # Todo: Figure out when to detach FANCM-FAcpx-ID2_ub complex from the lesion
     Rule("TFIIH_binds_lesion",
-         TFIIH(lesion=None, xpd=None) + Lesion(b=2) % RAD23B(xpc=1) % XPC(lesion=2, rad23b=1) >>
-         TFIIH(lesion=3, xpd=None) % Lesion(b=3) + RAD23B(xpc=None) + XPC(lesion=None, rad23b=None),
+         TFIIH(lesion=None, xpd=None) + Lesion(ner=2) % RAD23B(xpc=1) % XPC(lesion=2, rad23b=1) >>
+         TFIIH(lesion=3, xpd=None) % Lesion(ner=3) + RAD23B(xpc=None) + XPC(lesion=None, rad23b=None),
          k_TFIIH_lesion)
 
     Rule("XPD_binds_TFIIH_lesion",
@@ -83,21 +83,22 @@ def create_ner_model_elements():
          kf_ERCC1_XPF, kr_ERCC1_XPF)
 
     Rule("ERCC1_XPF_binds_lesion",
-         ERCC1(xpf=1, lesion=None) % XPF(ercc1=1) + Lesion(b=3) % XPD(tfiih=2) % TFIIH(lesion=3, xpd=2) >>
-         ERCC1(xpf=1, lesion=3) % XPF(ercc1=1) % Lesion(b=3) + XPD(tfiih=None) + TFIIH(lesion=None, xpd=None),
+         ERCC1(xpf=1, lesion=None) % XPF(ercc1=1) + Lesion(ner=3) % XPD(tfiih=2) % TFIIH(lesion=3, xpd=2) >>
+         ERCC1(xpf=1, lesion=3) % XPF(ercc1=1) % Lesion(ner=3) + XPD(tfiih=None) + TFIIH(lesion=None, xpd=None),
          k_ERCC1_XPF_lesion)
 
     Rule("Pol_Zeta_binds_lesion",
-         Pol_Zeta(dna=None) + ERCC1(xpf=1, lesion=2) % XPF(ercc1=1) % Lesion(b=2) >>
-         Pol_Zeta(dna=3) % Lesion(b=3) + ERCC1(xpf=None, lesion=None) + XPF(ercc1=None),
+         Pol_Zeta(dna=None) + ERCC1(xpf=1, lesion=2) % XPF(ercc1=1) % Lesion(ner=2) >>
+         Pol_Zeta(dna=3) % Lesion(ner=3) + ERCC1(xpf=None, lesion=None) + XPF(ercc1=None),
          k_Pol_Zeta_lesion)
 
     Rule("Ligase_binds_lesion",
-         Ligase(dna=None) + Pol_Zeta(dna=1) % Lesion(b=1) >>
-         Ligase(dna=1) % Lesion(b=1) + Pol_Zeta(dna=None), k_Ligase_lesion)
+         Ligase(dna=None) + Pol_Zeta(dna=1) % Lesion(ner=1) >>
+         Ligase(dna=1) % Lesion(ner=1) + Pol_Zeta(dna=None), k_Ligase_lesion)
 
     Rule("Ligase_Repairs_Lesion",
-         Ligase(dna=1) % Lesion(b=1) >> Ligase(dna=None), k_ligase_repairs_lesion)
+         Ligase(dna=1) % Lesion(ner=1, fanc=2) % FANCM(dna=2) >> Ligase(dna=None) + FANCM(dna=None),
+         k_ligase_repairs_lesion)
 
 
 if __name__ == "__main__":
