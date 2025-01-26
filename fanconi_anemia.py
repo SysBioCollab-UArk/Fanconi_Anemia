@@ -438,7 +438,7 @@ Observable("Ligase_lesion", Ligase(dna=1) % Lesion(ner=1))
 
 # simulation commands
 
-tspan = np.linspace(0, 50*f, min(201, int(200*f)+1))
+tspan = np.linspace(0, 20*f, min(201, int(200*f)+1))
 sim = ScipyOdeSimulator(model, tspan, verbose=True)
 result = sim.run()
 
@@ -478,7 +478,7 @@ obs2plot=["DNA_lesions", "FANCM_lesion", 'FANCM_tot', 'FANCM_free', "Lesion_free
 for obs in obs2plot:
     plt.plot(tspan, result.observables[obs], lw=2, label=obs)
 plt.plot(tspan, result.observable(Lesion(fanc=None)), lw=2, label='Lesion_fancm_None')
-plt.legend(loc="best", ncol=2)
+plt.legend(loc="best", ncol=1)
 plt.tight_layout()
 
 plt.show()
