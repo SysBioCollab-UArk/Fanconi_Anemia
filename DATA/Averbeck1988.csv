@@ -1,0 +1,7 @@
+observable,time,time_units,average,stderr,amount_units,expt_id,alt_expt_id
+DNA_lesions,24,hr,168.96,16.896,count,A,4_405nm 0_365nm Normal
+DNA_lesions,24,hr,259.072,14.08,count,B,4_405nm 0_365nm FA 150
+Interstrand_crosslinks,24,hr,4.864,0.512,count,C,0.2_405nm 2.4_365nm Normal
+Interstrand_crosslinks,24,hr,6.784,0.512,count,D,0.2_405nm 2.4_365nm FA 150
+Interstrand_crosslinks,24,hr,133.7472,7.4304,count,E,4_405nm 1.2_365nm Normal
+Interstrand_crosslinks,24,hr,185.76,4.9536,count,F,4_405nm 1.2_365nm FA 150
