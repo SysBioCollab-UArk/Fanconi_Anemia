@@ -16,16 +16,19 @@ Monomer("Pol_Zeta", ["dna"])  # DNA polymerase zeta
 Monomer("Ligase", ["dna"])  # DNA ligase
 
 Parameter("ICL_0", 100)
+Parameter('DSB_0', 0)
+Parameter('Lesion_0', 0)
 Parameter("Pol_Zeta_0", 100)
 Parameter("Ligase_0", 100)
 
 Initial(ICL(b=None), ICL_0)
+Initial(DSB(b=None), DSB_0)
+Initial(Lesion(fanc=None, ner=None), Lesion_0)
 Initial(Pol_Zeta(dna=None), Pol_Zeta_0)
 Initial(Ligase(dna=None), Ligase_0)
 
 # ICL synthesis rule
-f=1
-Parameter("k_ICL_synth", 0/f)
+Parameter("k_ICL_synth", 0)
 Rule("ICL_synthesis", None >> ICL(b=None), k_ICL_synth)
 
 # Proteins
@@ -416,15 +419,10 @@ Observable('Interstrand_crosslinks', ICL())
 Observable('Double_strand_breaks', DSB())
 Observable('DNA_lesions', Lesion())
 
-
 Observable("Lesion_free", Lesion(ner=None, fanc=None))
 Observable("Lesion_ner_ANY_fanc_None", Lesion(ner=ANY, fanc=None))
 Observable("Lesion_ner_None_fanc_ANY", Lesion(ner=None, fanc=ANY))
 Observable("Lesion_ner_ANY_fanc_ANY", Lesion(ner=ANY, fanc=ANY))
-
-# TODO: Add rules for double strand break repair AND translesion synthesis
-# TODO: Sabrina = DSB repair pathway
-# TODO: Alyssa = DNA lesion repair pathway
 
 # Homologous recombination model elements
 create_hr_model_elements()
@@ -436,49 +434,50 @@ create_ner_model_elements()
 Observable("Pol_Zeta_Lesion", Pol_Zeta(dna=1) % Lesion(ner=1))
 Observable("Ligase_lesion", Ligase(dna=1) % Lesion(ner=1))
 
-# simulation commands
+if __name__ == '__main__':
 
-tspan = np.linspace(0, 20*f, min(201, int(200*f)+1))
-sim = ScipyOdeSimulator(model, tspan, verbose=True)
-result = sim.run()
+    # simulation commands
+    tspan = np.linspace(0, 24, 241)
+    sim = ScipyOdeSimulator(model, tspan, verbose=True)
+    result = sim.run()
 
-complexes = ['AG20_total', 'BL100_total', 'CEF_total', 'FAcpx_free', 'FAcpx_ID2ub', 'FANCQ_FANCP_ID2Ub']
+    complexes = ['AG20_total', 'BL100_total', 'CEF_total', 'FAcpx_free', 'FAcpx_ID2ub', 'FANCQ_FANCP_ID2Ub']
 
-mutations = ['Interstrand_crosslinks', 'Double_strand_breaks', 'DNA_lesions']  # , 'Pol_Zeta_DSB', 'Ligase_DSB',
-             # 'Pol_Zeta_Lesion', 'Ligase_lesion']
+    mutations = ['Interstrand_crosslinks', 'Double_strand_breaks', 'DNA_lesions']  # , 'Pol_Zeta_DSB', 'Ligase_DSB',
+                 # 'Pol_Zeta_Lesion', 'Ligase_lesion']
 
-plt.figure('complexes')
-plt.figure('mutations')
-for obs in complexes + mutations:
-    if obs in mutations:
-        plt.figure('mutations')
-    elif obs in complexes:
-        plt.figure('complexes')
-    plt.plot(tspan, result.observables[obs], lw=2, label=obs)
+    plt.figure('complexes')
+    plt.figure('mutations')
+    for obs in complexes + mutations:
+        if obs in mutations:
+            plt.figure('mutations')
+        elif obs in complexes:
+            plt.figure('complexes')
+        plt.plot(tspan, result.observables[obs], lw=2, label=obs)
 
-plt.figure('complexes')
-plt.xlabel('time (arbitrary units)', fontsize=16)
-plt.ylabel('# of molecules', fontsize=16)
-plt.xticks(fontsize=14)
-plt.yticks(fontsize=14)
-plt.legend(loc="best", ncol=2, fontsize=14)
-plt.tight_layout()
+    plt.figure('complexes')
+    plt.xlabel('time (arbitrary units)', fontsize=16)
+    plt.ylabel('# of molecules', fontsize=16)
+    plt.xticks(fontsize=14)
+    plt.yticks(fontsize=14)
+    plt.legend(loc="best", ncol=2, fontsize=14)
+    plt.tight_layout()
 
-plt.figure('mutations')
-plt.xlabel('time (arbitrary units)', fontsize=16)
-plt.ylabel('# of molecules', fontsize=16)
-plt.xticks(fontsize=14)
-plt.yticks(fontsize=14)
-plt.legend(loc="best", fontsize=14)
-plt.tight_layout()
+    plt.figure('mutations')
+    plt.xlabel('time (arbitrary units)', fontsize=16)
+    plt.ylabel('# of molecules', fontsize=16)
+    plt.xticks(fontsize=14)
+    plt.yticks(fontsize=14)
+    plt.legend(loc="best", fontsize=14)
+    plt.tight_layout()
 
-plt.figure()
-obs2plot=["DNA_lesions", "FANCM_lesion", 'FANCM_tot', 'FANCM_free', "Lesion_free", "Lesion_ner_ANY_fanc_None",
-          "Lesion_ner_None_fanc_ANY", "Lesion_ner_ANY_fanc_ANY"]
-for obs in obs2plot:
-    plt.plot(tspan, result.observables[obs], lw=2, label=obs)
-plt.plot(tspan, result.observable(Lesion(fanc=None)), lw=2, label='Lesion_fancm_None')
-plt.legend(loc="best", ncol=1)
-plt.tight_layout()
+    plt.figure()
+    obs2plot=["DNA_lesions", "FANCM_lesion", 'FANCM_tot', 'FANCM_free', "Lesion_free", "Lesion_ner_ANY_fanc_None",
+              "Lesion_ner_None_fanc_ANY", "Lesion_ner_ANY_fanc_ANY"]
+    for obs in obs2plot:
+        plt.plot(tspan, result.observables[obs], lw=2, label=obs)
+    plt.plot(tspan, result.observable(Lesion(fanc=None)), lw=2, label='Lesion_fancm_None')
+    plt.legend(loc="best", ncol=1)
+    plt.tight_layout()
 
-plt.show()
+    plt.show()
