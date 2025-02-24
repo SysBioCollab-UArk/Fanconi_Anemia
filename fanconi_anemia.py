@@ -15,7 +15,7 @@ Monomer('Lesion', ['fanc', 'ner'])  # DNA lesions
 Monomer("Pol_Zeta", ["dna"])  # DNA polymerase zeta
 Monomer("Ligase", ["dna"])  # DNA ligase
 
-Parameter("ICL_0", 100)
+Parameter("ICL_0", 0)
 Parameter('DSB_0', 0)
 Parameter('Lesion_0', 0)
 Parameter("Pol_Zeta_0", 100)
@@ -385,6 +385,8 @@ Rule('FANCP_unbinds_ID2Ub',
      kr_fancp_ID2Ub)
 Observable('FANCP_ID2Ub', FANCP(fanci=ANY, fancd2=ANY, fancq=None))
 
+# TODO: Add rule for binding of FANCQ (aka XPF) to ERCC1
+
 # 10. FANCQ binds to ID2-Ub % FANCP
 Monomer('FANCQ', ['fancp'])
 Parameter('FANCQ_0', 100)
@@ -435,6 +437,8 @@ Observable("Pol_Zeta_Lesion", Pol_Zeta(dna=1) % Lesion(ner=1))
 Observable("Ligase_lesion", Ligase(dna=1) % Lesion(ner=1))
 
 if __name__ == '__main__':
+
+    ICL_0.value = 100
 
     # simulation commands
     tspan = np.linspace(0, 24, 241)
