@@ -28,7 +28,7 @@ Initial(MRE11(parp1=None), MRE11_0)
 
 Parameter("kf_DSB_Parp1", 1)
 Parameter("kr_DSB_Parp1", 10)
-Parameter("kr_DSB_CtIP", 1)
+Parameter("kf_DSB_CtIP", 1)
 Parameter("kr_DSB_CtIP", 10)
 
 
@@ -36,7 +36,7 @@ Rule("Parp1_binds_DSB",
      DSB(b=None) + Parp1(dsb=None, ctip_mre11=None) |
      DSB(b=1) % Parp1(dsb=1, ctip_mre11=None), kf_DSB_Parp1, kr_DSB_Parp1)
 Rule("CtIP_binds_Parp1",
-     CtIP(parp1=None) + Parp1(dsb=1, ctip_mre11=None) |
+     CtIP(parp1=None) + Parp1(dsb=None, ctip_mre11=None) |
      CtIP(parp1=2) % Parp1(dsb=1, ctip_mre11=2), kf_DSB_CtIP, kr_DSB_CtIP)
 Rule("MRE11_binds_Parp1",
      MRE11(parp1=None) + Parp1(dsb=1) |
