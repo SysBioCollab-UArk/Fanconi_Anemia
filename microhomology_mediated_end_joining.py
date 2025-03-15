@@ -10,8 +10,14 @@ Model()
 # 2. MRE11 binds Parp1
 # 3. CtIP binds Parp1
 
+#Monomer('A', ['a', 'a'], {'a': ['u', 'p']})
+# Parameter('k1', 100)
+# Parameter('A_0', 200)
+# Rule('r1', None >> A(a=MultiState('u', 'p')), k1)
+# Initial(A(a=MultiState(('u', 1), 'p')) %
+#         A(a=MultiState(('u', 1), 'u')), A_0)
 
-Monomer("DSB", ["b"])
+Monomer("DSB", ["b", "b"])
 Monomer("Parp1", ["dsb", "ctip_mre11"])
 Monomer("CtIP", ["parp1"])
 Monomer("MRE11", ["parp1"])
@@ -21,7 +27,7 @@ Parameter("Parp1_0", 100)
 Parameter("CtIP_0", 100)
 Parameter("MRE11_0", 100)
 
-Initial(DSB(b=None), DSB_0)
+Initial(DSB(b=MultiState(None,None)), DSB_0)
 Initial(Parp1(dsb=None, ctip_mre11=None), Parp1_0)
 Initial(CtIP(parp1=None), CtIP_0)
 Initial(MRE11(parp1=None), MRE11_0)
@@ -31,27 +37,16 @@ Parameter("kr_DSB_Parp1", 10)
 Parameter("kf_DSB_CtIP", 1)
 Parameter("kr_DSB_CtIP", 10)
 
-# Monomer definitions for two distinct Parp1 molecules
-Monomer("Parp1_CtIP", ["dsb", "ctip"])
-Monomer("Parp1_MRE11", ["dsb", "mre11"])
-
-# Rule for MRE11 binding first to Parp1_MRE11
-Rule("Parp1_MRE11_binds_DSB",
-     DSB(b=None) + Parp1_MRE11(dsb=None, mre11=None) |
-     DSB(b=1) % Parp1_MRE11(dsb=1, mre11=None), kf_DSB_Parp1, kr_DSB_Parp1)
-
-Rule("MRE11_binds_Parp1",
-     MRE11(parp1=None) + DSB(b=1) % Parp1_MRE11(dsb=1, mre11=None) |
-     MRE11(parp1=2) % DSB(b=1) % Parp1_MRE11(dsb=1, mre11=2), kf_DSB_Parp1, kr_DSB_Parp1)
-
-# Rule for CtIP binding later to Parp1_CtIP
-Rule("Parp1_CtIP_binds_DSB",
-     DSB(b=None) + Parp1_CtIP(dsb=None, ctip=None) |
-     DSB(b=1) % Parp1_CtIP(dsb=1, ctip=None), kf_DSB_Parp1, kr_DSB_Parp1)
-
+Rule("Parp1_binds_DSB",
+      DSB(b=None) + Parp1(dsb=None, ctip_mre11=None) |
+      DSB(b=1) % Parp1(dsb=1, ctip_mre11=None), kf_DSB_Parp1, kr_DSB_Parp1)
 Rule("CtIP_binds_Parp1",
-     CtIP(parp1=None) + DSB(b=1) % Parp1_CtIP(dsb=1, ctip=None) |
-     CtIP(parp1=2) % DSB(b=1) % Parp1_CtIP(dsb=1, ctip=2), kf_DSB_CtIP, kr_DSB_CtIP)
+      CtIP(parp1=None) + DSB(b=1) % Parp1(dsb=1, ctip_mre11=None) |
+      CtIP(parp1=2) % DSB(b=1) % Parp1(dsb=1, ctip_mre11=2), kf_DSB_CtIP, kr_DSB_CtIP)
+Rule("MRE11_binds_Parp1",
+      MRE11(parp1=None) + DSB(b=MultiState(1,3)) % Parp1(dsb=1, ctip_mre11=None) % Parp1(dsb=3, ctip_mre11= 2) % CtIP(parp1=2) |
+      MRE11(parp1=4) % DSB(b=MultiState(1,3)) % Parp1(dsb=1, ctip_mre11=4) % Parp1(dsb=3, ctip_mre11= 2) % CtIP(parp1=2),
+     kf_DSB_Parp1, kr_DSB_Parp1)
 
 # Next step in which the resection process begins to create ssDNA.
 class ResectionProcess:
