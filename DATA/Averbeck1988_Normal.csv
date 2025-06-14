@@ -2,6 +2,3 @@ observable,time,time_units,average,stderr,amount_units,expt_id,alt_expt_id
 DNA_lesions,24,hr,168.96,16.896,count,A,4 kJ/m$^2$ 405nm $\rightarrow$ 0 kJ/m$^2$ 365nm Normal
 Interstrand_crosslinks,24,hr,4.864,0.512,count,B,0.2 kJ/m$^2$ 405nm $\rightarrow$ 2.4 kJ/m$^2$ 365nm Normal
 Interstrand_crosslinks,24,hr,133.7472,7.4304,count,C,4 kJ/m$^2$ 405nm $\rightarrow$ 1.2 kJ/m$^2$ 365nm Normal
-DNA_lesions,24,hr,259.072,14.08,count,AA,4 kJ/m$^2$ 405nm $\rightarrow$ 0 kJ/m$^2$ 365nm FA 150
-Interstrand_crosslinks,24,hr,6.784,0.512,count,BB,0.2 kJ/m$^2$ 405nm $\rightarrow$ 2.4 kJ/m$^2$ 365nm FA 150
-Interstrand_crosslinks,24,hr,185.76,4.9536,count,CC,4 kJ/m$^2$ 405nm $\rightarrow$ 1.2 kJ/m$^2$ 365nm FA 150
