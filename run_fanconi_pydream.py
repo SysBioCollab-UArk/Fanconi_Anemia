@@ -1,13 +1,7 @@
 from fanconi_anemia import model
 from param_calibration import *
-from pysb.simulator import ScipyOdeSimulator
 from SIM_PROTOCOLS.sim_protocols import *
 import os
-
-# TODO: Comment out unnecessary Observables
-
-print(model.observables)
-quit()
 
 # Monomer('FANCA', ['fancg', 'faap20']),
 # Monomer('FANCG', ['fanca']),
@@ -52,37 +46,26 @@ quit()
 
 solver = ScipyOdeSimulator(model)
 
-time_perturb_value = [{0: ('Lesion(fanc=None, ner=None)', 44 * 6.4)},  # Expt A, Normal
-                      {0: ('ICL(b=None)', 2 * 6.4)},  # Expt B, Normal
-                      {0: [('Lesion(fanc=None, ner=None)', 5.3 * 6.4), ('ICL(b=None)', 38.7 * 6.4)]},  # Expt C, Normal
-                      {0: ('Lesion(fanc=None, ner=None)', 44 * 6.4)},  # Expt A, FA 150
-                      {0: ('ICL(b=None)', 2 * 6.4)},  # Expt B, FA 150
-                      {0: [('Lesion(fanc=None, ner=None)', 5.3 * 6.4), ('ICL(b=None)', 38.7 * 6.4)]},] # Expt C, FA 150
+time_perturb_value = [{0: ('Lesion(fanc=None, ner=None)', 44 * 6.4)},  # Expt A
+                      {0: ('ICL(b=None)', 2 * 6.4)},  # Expt B
+                      {0: [('Lesion(fanc=None, ner=None)', 5.3 * 6.4), ('ICL(b=None)', 38.7 * 6.4)]}]  # Expt C
 
-multi_exp_injection = ParallelExperiments(solver, t_equil=1e3, time_perturb_value=time_perturb_value)
+sim_protocols = [SequentialInjections(solver, t_equil=100, time_perturb_value=tpv) for tpv in time_perturb_value]
 
 custom_priors = {}  # {'N': ('uniform', 0.3)}
 no_sample = ['ICL_0', 'DSB_0', 'Lesion_0', 'k_ICL_synth', 'k_AG20_lump', 'k_BL100_lump', 'k_CEF_lump',
              'k_AG20_BL100_CEF_lump']
 obs_labels = {'DNA_lesions': 'MAs', 'Interstrand_crosslinks': 'ICLs'}
 
-exp_data_file = os.path.join('DATA', 'Averbeck1988.csv')
-
-params = ['FANCA_0', 'kf_AG', 'kr_AG', 'kf_A20', 'kr_A20', 'kf_AG20_BL100', 'kr_AG20_BL100', 'kf_AG20_BL100_CEF',
- 'kr_AG20_BL100_CEF', 'kf_AG20_CEF', 'kr_AG20_CEF', 'kf_AG20_CEF_BL100', 'kr_AG20_CEF_BL100', 'kf_FAcpx_M',
- 'kr_FAcpx_M', 'kf_FAcpx_T', 'kr_FAcpx_T', 'kf_FAcpxMT_binds_ID2', 'kr_FAcpxMT_binds_ID2',
- 'k_FAcpxMT_ICL_release_ID2ub', 'k_FAcpxMT_Lesion_release_ID2ub']
-
-param_expts_map = {param: [('A', 'B', 'C'), ('AA', 'BB', 'CC')] for param in params}
+exp_data_file = os.path.join('DATA', 'Averbeck1988_Normal.csv')
 
 if __name__ == '__main__':
 
     calibrator = ParameterCalibration(model,
                                       exp_data_file,
-                                      multi_exp_injection,
+                                      sim_protocols,
                                       priors=custom_priors,
-                                      no_sample=no_sample,
-                                      param_expts_map=param_expts_map)
+                                      no_sample=no_sample)
 
     calibrator.run(niterations=50000, nchains=5, obs_labels=obs_labels, plot_results=True,
                    plot_tc_args={'separate_plots': True, 'save_sim_data': True})
