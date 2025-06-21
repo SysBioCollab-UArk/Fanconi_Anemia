@@ -2,24 +2,21 @@ from pysb import *
 from pysb.util import alias_model_components
 
 
-def create_ner_model_elements():
+def create_ner_model_elements(define_observables=True):
 
     # Monomers
     Monomer("RAD23B", ["xpc"])
     Monomer("XPC", ["rad23b", "lesion"])
     Monomer("TFIIH", ["lesion", "xpd"])
     Monomer("XPD", ["tfiih"])
-    # Monomer("ERCC1", ["xpf", "lesion"])  # TODO: move binding of XPF, aka FANCQ, to ERCC1 to fanconi_anemia.py
-    # Monomer("XPF", ["ercc1"])  # TODO: XPF is another name for FANCQ
 
     # Initials (Parameters)
     Parameter("RAD23B_0", 100)
     Parameter("XPC_0", 100)
     Parameter("TFIIH_0", 100)
     Parameter("XPD_0", 100)
-    # Parameter("ERCC1_0", 100)  # TODO: move to fanconi_anemia.py
-    # Parameter("XPF_0", 100)  # TODO: XPF is another name for FANCQ
 
+    # Rate constants
     Parameter("k_bind_FANCD2_FANCI", 1)
     Parameter("k_unbind_FANCD2_FANCI", 1)
     Parameter('kf_XPC_lesion', 1)
@@ -29,9 +26,7 @@ def create_ner_model_elements():
     Parameter('k_TFIIH_lesion', 1)
     Parameter('kf_XPD_TFIIH_lesion', 1)
     Parameter('kr_XPD_TFIIH_lesion', 1)
-    # Parameter('kf_ERCC1_XPF', 1)  # TODO: XPF is another name for FANCQ
-    # Parameter('kr_ERCC1_XPF', 1)  # TODO: XPF is another name for FANCQ
-    Parameter('k_FANCQ_lesion', 1)  # TODO: XPF is another name for FANCQ
+    Parameter('k_FANCQ_lesion', 1)
     Parameter('k_Pol_Zeta_lesion', 1)
     Parameter('k_Ligase_lesion', 1)
     Parameter('k_unbind_lesion', 1e3)
@@ -43,13 +38,12 @@ def create_ner_model_elements():
     Initial(XPC(rad23b=None, lesion=None), XPC_0)
     Initial(TFIIH(lesion=None, xpd=None), TFIIH_0)
     Initial(XPD(tfiih=None), XPD_0)
-    # Initial(ERCC1(xpf=None, lesion=None), ERCC1_0)  # TODO: move to fanconi_anemia.py
-    # Initial(XPF(ercc1=None), XPF_0)  # TODO: XPF is another name for FANCQ
 
     # Observables
-    Observable("XPC_RAD23B_lesion", XPC(lesion=ANY, rad23b=ANY))
-    Observable("TFIIH_XPD_lesion", TFIIH(lesion=ANY, xpd=ANY))
-    Observable("FANCQ_ERCC1_lesion", FANCQ(ercc1=ANY, b=1) % Lesion(ner=1))  # TODO: XPF is another name for FANCQ
+    if define_observables:
+        Observable("XPC_RAD23B_lesion", XPC(lesion=ANY, rad23b=ANY))
+        Observable("TFIIH_XPD_lesion", TFIIH(lesion=ANY, xpd=ANY))
+        Observable("FANCQ_ERCC1_lesion", FANCQ(ercc1=ANY, b=1) % Lesion(ner=1))
 
     # Steps
     # 1. XPC binds DNA adduct
@@ -104,29 +98,22 @@ def create_ner_model_elements():
          XPD(tfiih=None) + TFIIH(lesion=None, xpd=None) + Lesion(ner=None, fanc=None),
          k_unbind_lesion)
 
-    # TODO: XPF is another name for FANCQ. Move this rule to fanconi_anemia.py
-    # Rule("ERCC1_binds_XPF",
-    #      ERCC1(xpf=None, lesion=None) + XPF(ercc1=None) | ERCC1(xpf=1, lesion=None) % XPF(ercc1=1),
-    #      kf_ERCC1_XPF, kr_ERCC1_XPF)
-
-    # TODO: XPF is another name for FANCQ
+    # NOTE: Modified rule to require FANCD2 to be bound to the Lesion for the FANCQ % ERCC1 complex to bind
     Rule("FANCQ_ERCC1_binds_Lesion",
          FANCQ(ercc1=ANY, b=None) + Lesion(ner=3, fanc=4) % FANCD2(dna=4) % XPD(tfiih=2) % TFIIH(lesion=3, xpd=2) >>
          FANCQ(ercc1=ANY, b=3) % Lesion(ner=3, fanc=4) % FANCD2(dna=4) + XPD(tfiih=None) + TFIIH(lesion=None, xpd=None),
          k_FANCQ_lesion)
 
-    # TODO: XPF is another name for FANCQ
     Rule('FANCQ_ERCC1_unbinds_Lesion_fanc_unbound',
-         FANCQ(ercc1=ANY, b=3) % Lesion(ner=3, fanc=None) >> FANCQ(ercc1=ANY, b=None) + Lesion(ner=None, fanc=None),
+         FANCQ(ercc1=ANY, b=3) % Lesion(ner=3, fanc=None) >>
+         FANCQ(ercc1=ANY, b=None) + Lesion(ner=None, fanc=None),
          k_unbind_lesion)
 
-    # TODO: XPF is another name for FANCQ
     Rule('FANCQ_ERCC1_unbinds_Lesion_FANCM',
          FANCQ(ercc1=ANY, b=3) % Lesion(ner=3, fanc=2) % FANCM(dna=2) >>
          FANCQ(ercc1=ANY, b=None) + Lesion(ner=None, fanc=2) % FANCM(dna=2),
          k_unbind_lesion)
 
-    # TODO: XPF is another name for FANCQ
     Rule("Pol_Zeta_binds_lesion",
          Pol_Zeta(dna=None) + Lesion(ner=2, fanc=4) % FANCD2(dna=4) % FANCQ(ercc1=ANY, b=2) >>
          Pol_Zeta(dna=3) % Lesion(ner=3, fanc=4) % FANCD2(dna=4) + FANCQ(ercc1=ANY, b=None),

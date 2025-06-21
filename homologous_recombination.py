@@ -2,7 +2,7 @@ from pysb import *
 from pysb.util import alias_model_components
 
 
-def create_hr_model_elements():
+def create_hr_model_elements(define_observables=True):
 
     Monomer("MRN", ["dsb"])
     # MRN Complex (Mre11-Rad50-Nbs1) comes in contact with damaged DNA at 5' ends
@@ -33,9 +33,10 @@ def create_hr_model_elements():
 
     alias_model_components()
 
-    Observable("MRN_free", MRN(dsb=None))
-    Observable("RPA_free", RPA(dsb=None))
-    Observable("Rad51_BRCA2_free", Rad51_BRCA2(dsb=None))
+    if define_observables:
+        Observable("MRN_free", MRN(dsb=None))
+        Observable("RPA_free", RPA(dsb=None))
+        Observable("Rad51_BRCA2_free", Rad51_BRCA2(dsb=None))
 
     Initial(MRN(dsb=None), MRN_0)
     Initial(RPA(dsb=None), RPA_0)

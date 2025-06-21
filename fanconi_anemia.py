@@ -5,6 +5,8 @@ from nucleotide_excision_repair import create_ner_model_elements
 import numpy as np
 import matplotlib.pyplot as plt
 
+DEFINE_OBSERVABLES = False
+
 Model()
 
 # Shared components
@@ -174,9 +176,10 @@ Rule('CEF_FANCE_unlump', CEF(bl100=None, ag20=None) >>
 # Observable("CEF_complex", FANCC(fance=1, fancf=2) % FANCE(fancc=1) % FANCF(fancc=2))
 
 # Formation of FA core complex (AG20 % BL100 % CEF)
-Observable('AG20_total', AG20())
-Observable('BL100_total', BL100())
-Observable('CEF_total', CEF())
+if DEFINE_OBSERVABLES:
+    Observable('AG20_total', AG20())
+    Observable('BL100_total', BL100())
+    Observable('CEF_total', CEF())
 
 ###########
 
@@ -208,10 +211,11 @@ Rule("BL100_binds_CEF", BL100(ag20=None, cef=None) + CEF(ag20=None, bl100=None) 
 Rule("BL100_CEF_binds_AG20", BL100(ag20=None, cef=1) % CEF(ag20=None, bl100=1) + AG20(bl100=None, cef=None) |
      BL100(ag20=2, cef=1) % CEF(ag20=3, bl100=1) % AG20(bl100=2, cef=3), kf_BL100_CEF_AG20, kr_BL100_CEF_AG20)
 
-Observable("AG20_BL100", AG20(bl100=ANY, cef=None))
-Observable("AG20_CEF", AG20(bl100=None, cef=ANY))
-Observable("BL100_CEF", BL100(ag20=None, cef=ANY))
-Observable("AG20_BL100_CEF", AG20(bl100=ANY, cef=ANY))
+if DEFINE_OBSERVABLES:
+    Observable("AG20_BL100", AG20(bl100=ANY, cef=None))
+    Observable("AG20_CEF", AG20(bl100=None, cef=ANY))
+    Observable("BL100_CEF", BL100(ag20=None, cef=ANY))
+    Observable("AG20_BL100_CEF", AG20(bl100=ANY, cef=ANY))
 
 Monomer("FA_complex", ["fancm", "fanct", "fancd2", "rev1"])
 Parameter('k_AG20_BL100_CEF_lump', 1e9)
@@ -225,7 +229,8 @@ Rule('FA_complex_CEF_unlump', FA_complex(fancm=None, fanct=None, fancd2=None, re
      AG20(cef=None, bl100=1) % BL100(ag20=1, cef=None) + CEF(ag20=None, bl100=None), kr_AG20_BL100_CEF)
 Rule('FA_complex_AG20_unlump', FA_complex(fancm=None, fanct=None, fancd2=None, rev1=None) >>
      BL100(ag20=None, cef=1) % CEF(ag20=None, bl100=1) + AG20(bl100=None, cef=None), kr_BL100_CEF_AG20)
-Observable("FAcpx_free", FA_complex(fancm=None, fanct=None, fancd2=None, rev1=None))
+if DEFINE_OBSERVABLES:
+    Observable("FAcpx_free", FA_complex(fancm=None, fanct=None, fancd2=None, rev1=None))
 
 # 0. FANCM binds to DNA at damage site
 Monomer("FANCM", ['dna', "facpx"])
@@ -235,16 +240,18 @@ Parameter('kf_M_bind_icl', 1)
 Parameter('kr_M_bind_icl', 100)
 Rule('FANCM_binds_ICL', FANCM(dna=None, facpx=None) + ICL(b=None) | FANCM(dna=1, facpx=None) % ICL(b=1),
      kf_M_bind_icl, kr_M_bind_icl)
-Observable('FANCM_tot', FANCM())
-Observable('FANCM_free', FANCM(dna=None, facpx=None))
-Observable('FANCM_icl', FANCM(dna=1, facpx=None) % ICL(b=1))
+if DEFINE_OBSERVABLES:
+    Observable('FANCM_tot', FANCM())
+    Observable('FANCM_free', FANCM(dna=None, facpx=None))
+    Observable('FANCM_icl', FANCM(dna=1, facpx=None) % ICL(b=1))
 
 Parameter('kf_M_bind_lesion', 1)
 Parameter('kr_M_bind_lesion', 100)
 Rule('FANCM_binds_Lesion',
      FANCM(dna=None, facpx=None) + Lesion(fanc=None) | FANCM(dna=1, facpx=None) % Lesion(fanc=1),
      kf_M_bind_lesion, kr_M_bind_lesion)
-Observable('FANCM_lesion', FANCM(dna=1, facpx=None) % Lesion(fanc=1))
+if DEFINE_OBSERVABLES:
+    Observable('FANCM_lesion', FANCM(dna=1, facpx=None) % Lesion(fanc=1))
 
 # 1. FA complex binds FANCM
 Parameter("kf_FAcpx_M", 1)
@@ -255,7 +262,8 @@ Rule('FAcpx_binds_FANCM',
 Rule('FAcpx_ubinds_FANCM',
      FA_complex(fancm=1, fanct=None, fancd2=None, rev1=None) % FANCM(facpx=1) >>
      FA_complex(fancm=None, fanct=None, fancd2=None, rev1=None) + FANCM(facpx=None), kr_FAcpx_M)
-Observable("FAcpx_FANCM", FA_complex(fancm=ANY, fanct=None, fancd2=None, rev1=None))
+if DEFINE_OBSERVABLES:
+    Observable("FAcpx_FANCM", FA_complex(fancm=ANY, fanct=None, fancd2=None, rev1=None))
 
 # 2. FA complex % FANCM binds FANCT
 Monomer("FANCT", ["facpx"])
@@ -269,9 +277,10 @@ Rule('FAcpx_FANCM_binds_FANCT',
 Rule('FAcpx_FANCM_unbinds_FANCT',
      FA_complex(fancm=1, fanct=2, fancd2=None, rev1=None) % FANCM(facpx=1) % FANCT(facpx=2) >>
      FA_complex(fancm=1, fanct=None, fancd2=None, rev1=None) % FANCM(facpx=1) + FANCT(facpx=None), kr_FAcpx_T)
-Observable('FANCT_tot', FANCT())
-Observable('FANCT_free', FANCT(facpx=None))
-Observable("FAcpx_FANCM_FANCT", FA_complex(fancm=ANY, fanct=ANY, fancd2=None, rev1=None))
+if DEFINE_OBSERVABLES:
+    Observable('FANCT_tot', FANCT())
+    Observable('FANCT_free', FANCT(facpx=None))
+    Observable("FAcpx_FANCM_FANCT", FA_complex(fancm=ANY, fanct=ANY, fancd2=None, rev1=None))
 
 # 3. I + D2 <> I % D2
 Monomer("FANCI", ["fancd2", 'fancp', "state"], {"state": ["x", "ub"]})
@@ -286,10 +295,11 @@ Rule('FANCI_binds_FANCD2',
      FANCI(fancd2=None, fancp=None, state="x") + FANCD2(fanci=None, facpx=None, fancp=None, dna=None, state="x") |
      FANCI(fancd2=1, fancp=None, state="x") % FANCD2(fanci=1, facpx=None, fancp=None, dna=None, state="x"),
      kf_fanci_fancd2, kr_fanci_fancd2)
-Observable('FANCI_tot', FANCI())
-Observable('FANCD2_tot', FANCD2())
-Observable("FANCIx_FANCD2x",
-           FANCI(fancd2=1, fancp=None, state="x") % FANCD2(fanci=1, facpx=None, fancp=None, dna=None, state="x"))
+if DEFINE_OBSERVABLES:
+    Observable('FANCI_tot', FANCI())
+    Observable('FANCD2_tot', FANCD2())
+    Observable("FANCIx_FANCD2x",
+               FANCI(fancd2=1, fancp=None, state="x") % FANCD2(fanci=1, facpx=None, fancp=None, dna=None, state="x"))
 
 # 4. FA complex % FANCM % FANCT binds I % D2
 Parameter("kf_FAcpxMT_binds_ID2", 1)
@@ -300,9 +310,10 @@ Rule("FAcpx_M_T_binds_I_D2",
      FA_complex(fancm=1, fanct=ANY, fancd2=2, rev1=None) % FANCM(dna=ANY, facpx=1) %
      FANCD2(fanci=ANY, facpx=2, fancp=None, dna=None, state="x"),
      kf_FAcpxMT_binds_ID2, kr_FAcpxMT_binds_ID2)
-Observable("FAcpx_M_T_Ix_D2x",
-           FA_complex(fancm=ANY, fanct=ANY, fancd2=1, rev1=None) %
-           FANCD2(fanci=ANY, facpx=1, fancp=None, dna=None, state="x"))
+if DEFINE_OBSERVABLES:
+    Observable("FAcpx_M_T_Ix_D2x",
+               FA_complex(fancm=ANY, fanct=ANY, fancd2=1, rev1=None) %
+               FANCD2(fanci=ANY, facpx=1, fancp=None, dna=None, state="x"))
 
 # 5. ubiquitination of I % D2
 Parameter("k_ID2_Ubiq", 1)
@@ -311,10 +322,11 @@ Rule("FAcpx_I_D2_Ubiq",
      % FANCM(dna=ANY) >>
      FANCI(fancd2=1, fancp=None, state="ub") % FANCD2(fanci=1, facpx=ANY, fancp=None, dna=None, state="ub")
      % FANCM(dna=ANY), k_ID2_Ubiq)
-Observable("FAcpx_ID2ub",
-           FANCI(fancd2=1, fancp=None, state="ub") % FANCD2(fanci=1, facpx=ANY, fancp=None, dna=None, state="ub"))
-Observable('FANCIub_tot', FANCI(state='ub'))
-Observable('FANCD2ub_tot', FANCD2(state='ub'))
+if DEFINE_OBSERVABLES:
+    Observable("FAcpx_ID2ub",
+               FANCI(fancd2=1, fancp=None, state="ub") % FANCD2(fanci=1, facpx=ANY, fancp=None, dna=None, state="ub"))
+    Observable('FANCIub_tot', FANCI(state='ub'))
+    Observable('FANCD2ub_tot', FANCD2(state='ub'))
 
 # 6. release of ID2-Ub from FA complex % FANCM % FANCT
 Parameter("k_FAcpxMT_ICL_release_ID2ub", 10)
@@ -333,8 +345,9 @@ Rule("FAcpx_M_T_Lesion_release_ID2ub",
      FANCI(fancd2=1, fancp=None, state="ub") % FANCD2(fanci=1, facpx=None, fancp=None, dna=2, state="ub"),
      k_FAcpxMT_Lesion_release_ID2ub)
 
-Observable("ID2_Ub",
-           FANCI(fancd2=1, fancp=None, state="ub") % FANCD2(fanci=1, facpx=None, fancp=None, state="ub"))
+if DEFINE_OBSERVABLES:
+    Observable("ID2_Ub",
+               FANCI(fancd2=1, fancp=None, state="ub") % FANCD2(fanci=1, facpx=None, fancp=None, state="ub"))
 
 # 7. Reversible binding of UAF1 and USP1
 Monomer('UAF1', ['usp1'])
@@ -347,7 +360,8 @@ Parameter('kf_uaf1_usp1', 0.01)  # 0.01
 Parameter('kr_uaf1_usp1', 0.5)  # 0.5
 Rule('UAF1_binds_USP1',
      UAF1(usp1=None) + USP1(uaf1=None) | UAF1(usp1=1) % USP1(uaf1=1), kf_uaf1_usp1, kr_uaf1_usp1)
-Observable('UAF1_USP1', UAF1(usp1=1) % USP1(uaf1=1))
+if DEFINE_OBSERVABLES:
+    Observable('UAF1_USP1', UAF1(usp1=1) % USP1(uaf1=1))
 
 # 8. Deubiquitination of ID2-Ub by UAF1 and USP1
 Parameter('k_ID2_deubiq', 0.01)  # 0.01
@@ -388,7 +402,8 @@ Rule('FANCP_unbinds_ID2Ub',
      FANCP(fanci=None, fancd2=None, fancq=None) +
      FANCI(fancd2=1, fancp=None, state="ub") % FANCD2(fanci=1, facpx=None, fancp=None, state="ub"),
      kr_fancp_ID2Ub)
-Observable('FANCP_ID2Ub', FANCP(fanci=ANY, fancd2=ANY, fancq=None))
+if DEFINE_OBSERVABLES:
+    Observable('FANCP_ID2Ub', FANCP(fanci=ANY, fancd2=ANY, fancq=None))
 
 # 9.5. FANCQ binds to ERCC1
 Monomer("FANCQ", ["ercc1", 'b'])
@@ -402,7 +417,8 @@ Parameter('kr_FANCQ_ERCC1', 1)
 Rule("FANCQ_binds_ERCC1",
          FANCQ(ercc1=None, b=None) + ERCC1(fancq=None) | FANCQ(ercc1=1, b=None) % ERCC1(fancq=1),
          kf_FANCQ_ERCC1, kr_FANCQ_ERCC1)
-Observable('FANCQ_ERCC1_dimer', FANCQ(ercc1=1, b=None) % ERCC1(fancq=1))
+if DEFINE_OBSERVABLES:
+    Observable('FANCQ_ERCC1_dimer', FANCQ(ercc1=1, b=None) % ERCC1(fancq=1))
 
 # 10. FANCQ_ERCC1 binds to ID2-Ub % FANCP
 Parameter('kf_fancq_fancp', 1)
@@ -417,8 +433,9 @@ Rule('FANCQ_unbinds_FANCP_ID2Ub',
      FANCD2(fanci=ANY, facpx=None, fancp=1, state="ub") >>
      FANCQ(ercc1=ANY, b=None) + FANCP(fanci=ANY, fancd2=1, fancq=None) %
      FANCD2(fanci=ANY, facpx=None, fancp=1, state="ub"), kr_fancq_fancp)
-Observable('FANCQ_FANCP_ID2Ub',
-           FANCQ(ercc1=ANY, b=1) % FANCP(fancq=1, fancd2=2) % FANCD2(fancp=2, fanci=ANY, state='ub'))
+if DEFINE_OBSERVABLES:
+    Observable('FANCQ_FANCP_ID2Ub',
+               FANCQ(ercc1=ANY, b=1) % FANCP(fancq=1, fancd2=2) % FANCD2(fancp=2, fanci=ANY, state='ub'))
 
 # 11. Unhooking machinery (FANCP, FANCQ) produce double-strand break and DNA lesion
 Parameter('k_unhook', 10)
@@ -427,26 +444,31 @@ Rule('DSB_and_DNA_lesion_creation',
      FANCQ(b=1) % FANCP(fanci=ANY, fancd2=2, fancq=1) % FANCD2(fancp=2, dna=None) + DSB(b=None) +
      Lesion(ner=None, fanc=None),
      k_unhook)
+if DEFINE_OBSERVABLES:
+    Observable('Double_strand_breaks', DSB())
+# TODO: Define ICLs and Lesions in all cases
 Observable('Interstrand_crosslinks', ICL())
-Observable('Double_strand_breaks', DSB())
 Observable('DNA_lesions', Lesion())
 
 # additional Observables for debugging
 # TODO: Probably want to remove these
-Observable("Lesion_free", Lesion(ner=None, fanc=None))
-Observable("Lesion_ner_ANY_fanc_None", Lesion(ner=ANY, fanc=None))
-Observable("Lesion_ner_None_fanc_ANY", Lesion(ner=None, fanc=ANY))
-Observable("Lesion_ner_ANY_fanc_ANY", Lesion(ner=ANY, fanc=ANY))
+if DEFINE_OBSERVABLES:
+    Observable("Lesion_free", Lesion(ner=None, fanc=None))
+    Observable("Lesion_ner_ANY_fanc_None", Lesion(ner=ANY, fanc=None))
+    Observable("Lesion_ner_None_fanc_ANY", Lesion(ner=None, fanc=ANY))
+    Observable("Lesion_ner_ANY_fanc_ANY", Lesion(ner=ANY, fanc=ANY))
 
 # Homologous recombination model elements
-create_hr_model_elements()
-Observable("Pol_Zeta_DSB", Pol_Zeta(dna=1) % DSB(b=1))
-Observable("Ligase_DSB", Ligase(dna=1) % DSB(b=1))
+create_hr_model_elements(define_observables=DEFINE_OBSERVABLES)
+if DEFINE_OBSERVABLES:
+    Observable("Pol_Zeta_DSB", Pol_Zeta(dna=1) % DSB(b=1))
+    Observable("Ligase_DSB", Ligase(dna=1) % DSB(b=1))
 
 # Nucleotide Excision Repair model elements
-create_ner_model_elements()
-Observable("Pol_Zeta_Lesion", Pol_Zeta(dna=1) % Lesion(ner=1))
-Observable("Ligase_lesion", Ligase(dna=1) % Lesion(ner=1))
+create_ner_model_elements(define_observables=DEFINE_OBSERVABLES)
+if DEFINE_OBSERVABLES:
+    Observable("Pol_Zeta_Lesion", Pol_Zeta(dna=1) % Lesion(ner=1))
+    Observable("Ligase_lesion", Ligase(dna=1) % Lesion(ner=1))
 
 if __name__ == '__main__':
 
