@@ -61,30 +61,37 @@ for expt in expt_conds.keys():
     plt.legend(loc='best')
 
 ##### Read in experimental data #####
-datafile = os.path.join('DATA', 'Averbeck1988.csv')
-data = np.genfromtxt(datafile, dtype=None, delimiter=',', names=True, encoding="utf_8_sig")
-print(data.dtype.names)
+datafile_Normal = os.path.join('DATA', 'Averbeck1988_Normal.csv')
+data_Normal = np.genfromtxt(datafile_Normal, dtype=None, delimiter=',', names=True, encoding="utf_8_sig")
+print(data_Normal.dtype.names)
 
-experiments = np.unique([d['expt_id'] for d in data])
+datafile_FA150 = os.path.join('DATA', 'Averbeck1988_FA150.csv')
+data_FA150 = np.genfromtxt(datafile_FA150, dtype=None, delimiter=',', names=True, encoding="utf_8_sig")
+print(data_FA150.dtype.names)
+
+data_list = [data_Normal, data_FA150]
+experiments = np.unique([d['expt_id'] for data in data_list for d in data])
 
 for expt in expt_conds.keys():
     plt.figure(expt, constrained_layout=True)
     expt_list = [x for x in experiments if expt in x]  # [A, AA], [B, BB], etc.
     alt_expt_ids = np.array(
-        [np.unique([d['alt_expt_id'] for d in data if d['expt_id'] == e]) for e in expt_list]).flatten()
+        [np.unique([d['alt_expt_id'] for data in data_list for d in data if d['expt_id'] == e])
+         for e in expt_list]).flatten()
     common, unique = find_common_and_unique(alt_expt_ids)
     plt.title(common, fontweight='bold')
-    observables = np.unique([d['observable'] for d in data if d['expt_id'] in expt_list])
+    observables = np.unique([d['observable'] for data in data_list for d in data if d['expt_id'] in expt_list])
     for obs in observables:
         for e, alt, cell_type in zip(expt_list, alt_expt_ids, unique):
-            xvals = [d['time'] for d in data if d['expt_id'] == e and d['observable'] == obs
-                     and d['alt_expt_id'] == alt]
-            yvals = [d['average'] for d in data if d['expt_id'] == e and d['observable'] == obs
-                     and d['alt_expt_id'] == alt]
-            yerrs = [d['stderr'] for d in data if d['expt_id'] == e and d['observable'] == obs
-                     and d['alt_expt_id'] == alt]
-            if len(xvals) > 0:
-                plt.errorbar(xvals, yvals, yerr=yerrs, fmt='o', ms=8, capsize=6, label='%s (%s)' % (obs, cell_type))
+            for data in data_list:
+                xvals = [d['time'] for d in data if d['expt_id'] == e and d['observable'] == obs
+                         and d['alt_expt_id'] == alt]
+                yvals = [d['average'] for d in data if d['expt_id'] == e and d['observable'] == obs
+                         and d['alt_expt_id'] == alt]
+                yerrs = [d['stderr'] for d in data if d['expt_id'] == e and d['observable'] == obs
+                         and d['alt_expt_id'] == alt]
+                if len(xvals) > 0:
+                    plt.errorbar(xvals, yvals, yerr=yerrs, fmt='o', ms=8, capsize=6, label='%s (%s)' % (obs, cell_type))
     plt.xlabel('time (hr)')
     plt.ylabel('# of mutations')
     plt.legend(loc='best')
