@@ -12,8 +12,8 @@ for dirpath in [os.path.join(basepath, directory) for directory in directories]:
     sys.path.insert(0, dirpath)
     import run_fanconi_pydream as rfp
 
-    calibrator = rfp.ParameterCalibration(rfp.model, rfp.exp_data_file, rfp.sim_protocols, priors=rfp.custom_priors,
-                                          no_sample=rfp.no_sample)
+    calibrator = rfp.ParameterCalibration(rfp.model, os.path.join(dirpath, rfp.exp_data_file), rfp.sim_protocols,
+                                          priors=rfp.custom_priors, no_sample=rfp.no_sample)
 
     # get timepoints from experimental data to define `tspans`
     expt_data = pd.read_csv(rfp.exp_data_file)
