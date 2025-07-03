@@ -12,11 +12,13 @@ for dirpath in [os.path.join(basepath, directory) for directory in directories]:
     sys.path.insert(0, dirpath)
     import run_fanconi_pydream as rfp
 
-    calibrator = rfp.ParameterCalibration(rfp.model, os.path.join(dirpath, rfp.exp_data_file), rfp.sim_protocols,
+    this_exp_data_file = os.path.join(dirpath, rfp.exp_data_file)
+
+    calibrator = rfp.ParameterCalibration(rfp.model, this_exp_data_file, rfp.sim_protocols,
                                           priors=rfp.custom_priors, no_sample=rfp.no_sample)
 
     # get timepoints from experimental data to define `tspans`
-    expt_data = pd.read_csv(rfp.exp_data_file)
+    expt_data = pd.read_csv(this_exp_data_file)
     expt_ids = expt_data['expt_id'].unique()
     t_maxes = [expt_data.loc[expt_data['expt_id'] == expt_id, 'time'].max() for expt_id in expt_ids]
     tspans = [np.linspace(0, t_max, int(t_max) * 10 + 1) for t_max in t_maxes]
