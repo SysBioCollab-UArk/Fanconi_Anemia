@@ -1,6 +1,7 @@
 from fanconi_anemia import model
 from param_calibration import *
 from SIM_PROTOCOLS.sim_protocols import *
+from pysb.simulator import ScipyOdeSimulator
 import os
 
 # Monomer('FANCA', ['fancg', 'faap20']),
