@@ -54,9 +54,9 @@ def create_ner_model_elements(define_observables=True):
     # 5. FANCQ/ERCC1 binds DNA adduct, displaces XPD and TFIIH
     # 6. XPG binds to the **DNA adduct**
 
-    # 6. Polymerase zeta binds DNA adduct, displaces FANCQ/ERCC1 + XPG
-    # 7. DNA ligase binds DNA adduct, displaces polymerase zeta
-    # 8. DNA ligase repairs the DNA adduct
+    # 7. Polymerase zeta binds DNA adduct, displaces FANCQ/ERCC1 + XPG
+    # 8. DNA ligase binds DNA adduct, displaces polymerase zeta
+    # 9. DNA ligase repairs the DNA adduct
 
     Rule("XPC_binds_Lesion",
          XPC(lesion=None, rad23b=None) + Lesion(ner=None, fanc=ANY) |
