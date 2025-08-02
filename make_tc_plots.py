@@ -4,10 +4,11 @@ import matplotlib.pyplot as plt
 import os
 
 basepath = 'RESULTS'
-directories = ['Averbeck1988_Normal', 'Averbeck1988_FA150']
+directories = ['Averbeck1988_Normal', os.path.join('Averbeck1988_FA150', 'MOD_STDERR')]
 
 # get the number of rows in the figure by finding the number of experiments (# of alt expt ids)
-expt_datafiles = [os.path.join(basepath, directory, 'DATA', '%s.csv' % directory) for directory in directories]
+expt_datafiles = [os.path.join(basepath, directory, 'DATA', '%s.csv' % str(directory).split(os.sep)[0])
+                  for directory in directories]
 all_alt_expt_ids = np.unique([pd.read_csv(expt_datafile)['alt_expt_id'].unique() for expt_datafile in expt_datafiles])
 nrows = len(all_alt_expt_ids)
 # get the number of columns in the figure by finding the number of observables for each experiment (ncols = max)
@@ -32,7 +33,7 @@ for directory in directories:
     print('Directory:', directory)
 
     # read experimental data
-    expt_data = pd.read_csv(os.path.join(basepath, directory, 'DATA', '%s.csv' % directory))
+    expt_data = pd.read_csv(os.path.join(basepath, directory, 'DATA', '%s.csv' % directory.split(os.sep)[0]))
 
     # get experiment IDs
     expt_ids = expt_data['expt_id'].unique()
