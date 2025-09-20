@@ -7,7 +7,7 @@ Model()
 
 # STEPS:
 # 1. Parp1 binds DSB
-# 2. MRE11 binds Parp1
+# 2. MRE11 binds Parp1M
 # 3. CtIP binds Parp1
 
 # Monomer('A', ['a', 'a'], {'a': ['u', 'p']})
@@ -20,10 +20,13 @@ Model()
 Monomer("DSB", ["b", "b"])
 Monomer("Parp1", ["dsb", "ctip_mre11"])
 Monomer("CtIP", ["parp1"])
-Monomer("MRE11", ["parp1_rad50"])
+Monomer("MRE11", ["parp1_rad50"] )
 Monomer("RAD50", ["mre11", "nbs1"])
 Monomer("NBS1", ["rad50"])
-Monomer("RPA", ["dsb"])
+Monomer("RPA", ["dsb", "parp1"])
+Monomer("PolQ", ["dsb", "parp1", "polq"])
+Monomer("LIG3", ["dsb", "dsb"])
+
 
 Parameter("DSB_0", 100)
 Parameter("Parp1_0", 100)
@@ -32,6 +35,8 @@ Parameter("MRE11_0", 100)
 Parameter("RAD50_0", 100)
 Parameter("NBS1_0", 100)
 Parameter("RPA_0", 100)
+Parameter("PolQ_0", 100)
+Parameter("LIG3_0", 100)
 
 Initial(DSB(b=MultiState(None, None)), DSB_0)
 Initial(Parp1(dsb=None, ctip_mre11=None), Parp1_0)
@@ -39,7 +44,9 @@ Initial(CtIP(parp1=None), CtIP_0)
 Initial(MRE11(parp1_rad50=None), MRE11_0)
 Initial(RAD50(mre11=None, nbs1=None), RAD50_0)
 Initial(NBS1(rad50=None), NBS1_0)
-Initial(RPA(dsb=None), RPA_0)
+Initial(RPA(dsb=None, parp1=None), RPA_0)
+Initial(PolQ(dsb=None, parp1=None, polq=None),PolQ_0)
+Initial(LIG3(dsb=MultiState(None, None)), LIG3_0)
 
 # STEP 0: Two-step binding process to form MRN from MRE11, RAD50, and NBS1:
 # MRE11 is involved in MMEJ, MRN is involved in HR;
@@ -92,22 +99,69 @@ Rule("MRE11_binds_Parp1",
 # STEP 4a: RPA displaces Parp1 % CtIP
 Parameter("k_RPA_binds_CtIP_Parp1_DSB", 1)
 Rule("RPA_binds_CtIP_Parp1_DSB",
-     RPA(dsb=None) + CtIP(parp1=4) % DSB(b=MultiState(1, ANY)) % Parp1(dsb=1, ctip_mre11=4) >>
-     RPA(dsb=1) % DSB(b=MultiState(1, ANY)) + CtIP(parp1=None) + Parp1(dsb=None, ctip_mre11=None),
+     RPA(dsb=None, parp1=None) + CtIP(parp1=4) % DSB(b=MultiState(1, ANY)) % Parp1(dsb=1, ctip_mre11=4) >>
+     RPA(dsb=1, parp1=2) % DSB(b=MultiState(1, ANY)) % CtIP(parp1=4) % Parp1(dsb=2, ctip_mre11=4),
      k_RPA_binds_CtIP_Parp1_DSB)
 
 # STEP 4b: RPA displaces Parp1 % MRE11
 Parameter("k_RPA_binds_MRE11_Parp1_DSB", 1)
 Rule("RPA_binds_MRE11_Parp1_DSB",
-     RPA(dsb=None) + MRE11(parp1_rad50=4) % DSB(b=MultiState(1, ANY)) % Parp1(dsb=1, ctip_mre11=4) >>
-     RPA(dsb=1) % DSB(b=MultiState(1, ANY)) + MRE11(parp1_rad50=None) + Parp1(dsb=None, ctip_mre11=None),
+     RPA(dsb=None, parp1=None) + MRE11(parp1_rad50=4) % DSB(b=MultiState(1, ANY)) % Parp1(dsb=1, ctip_mre11=4) >>
+     RPA(dsb=1,parp1=2) % DSB(b=MultiState(1, ANY)) % MRE11(parp1_rad50=4) % Parp1(dsb=2, ctip_mre11=4),
      k_RPA_binds_MRE11_Parp1_DSB)
 
-# STEP 5: RPA binds to the ssDNA to stabilize it. POLQ starts to bind
-# TODO: Check what's the difference between E and F in the BioRender figure
+
+# STEP 5: POLQ displaces RPA
+Parameter("k_PolQ_displaces_RPA", 1)
+Rule("POLQ_displaces_RPA_Parp1",
+     PolQ(dsb=None, parp1=None, polq=None) +
+     DSB(b=MultiState(1, ANY)) % Parp1(dsb=2, ctip_mre11=ANY) % RPA(dsb=1, parp1=2) >>
+     PolQ(dsb=1, parp1=2, polq=None) %
+     DSB(b=MultiState(1, ANY)) % Parp1(dsb=2, ctip_mre11=ANY) + RPA(dsb=None, parp1=None),
+     k_PolQ_displaces_RPA)
+
+#STEP 6: POLQ aligns microhomologies and extends DNA (POLQs bind to each other)
+Parameter("k_PolQ_aligns_microhomolgies", 1)
+Rule("PolQ_aligns_microhomologies",
+     PolQ(dsb=ANY, parp1=ANY, polq=None) % PolQ(dsb=ANY, parp1=ANY, polq=None) >>
+     PolQ(dsb=ANY, parp1=ANY, polq=1) % PolQ(dsb=ANY, parp1=ANY, polq=1),
+     k_PolQ_aligns_microhomolgies)
+
+#STEP 7: LIG3 binds DSB and seals nicks
+Parameter("k_LIG3_binds_DSB", 1)
+Rule("LIG3_binds_DSB",
+     LIG3(dsb=MultiState(None,None)) + DSB(b=MultiState(1, 2)) %
+     PolQ(dsb=1, parp1=3, polq=7) % CtIP(parp1=4) % Parp1(dsb=3, ctip_mre11=4) %
+     PolQ(dsb=2, parp1=5, polq=7) % MRE11(parp1_rad50=6) % Parp1(dsb=5, ctip_mre11=6) >>
+     LIG3(dsb=MultiState(1,2)) % DSB(b=MultiState(1, 2)) +
+     PolQ(dsb=None, parp1=None, polq=None) + CtIP(parp1=None) + Parp1(dsb=None, ctip_mre11=None) +
+     PolQ(dsb=None, parp1=None, polq=None) + MRE11(parp1_rad50=None) + Parp1(dsb=None, ctip_mre11=None),
+     k_LIG3_binds_DSB)
+
+#STEP 8: DNA is repaired
+Parameter("k_LIG3_repairs_DSB", 1)
+Rule("LIG3_repairs_DSB",
+     LIG3(dsb=MultiState(1,2)) % DSB(b=MultiState(1, 2)) >>
+     LIG3(dsb=MultiState(None,None)),
+     k_LIG3_repairs_DSB)
+
+Observable("DSB_tot",DSB())
 
 
-print(model)
-print(model.monomers)
-print(model.parameters)
-print(model.rules)
+# print(model)
+# print(model.monomers)
+# print(model.parameters)
+# print(model.rules)
+
+tspan=np.linspace(0,1000,1001)
+sim=ScipyOdeSimulator(model, tspan=tspan, verbose=True)
+output=sim.run()
+
+plt.figure(constrained_layout=True)
+for obs in model.observables:
+     plt.plot(tspan,output.observables[obs.name],lw=2,label=obs.name)
+plt.xlabel("time")
+plt.ylabel("concentration")
+plt.legend(loc="best")
+
+plt.show()
