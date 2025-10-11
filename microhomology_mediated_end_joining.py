@@ -27,13 +27,28 @@ Monomer("RPA", ["dsb", "parp1"])
 Monomer("PolQ", ["dsb", "parp1", "polq"])
 Monomer("LIG3", ["dsb", "dsb"])
 
+# Steps A-C
+Observable("Parp_free", Parp1(dsb=None,ctip_mre11=None))
+Observable("Parp_bound_DSB", Parp1(dsb=1,ctip_mre11=None) % DSB(b=1))
+Observable("Parp_bound_DSB_CtIP", Parp1(dsb=1,ctip_mre11=2) % DSB(b=1) % CtIP(parp1=2))
+Observable("Parp_bound_DSB_MRE11", Parp1(dsb=1,ctip_mre11=2) % DSB(b=1) % MRE11(parp1_rad50=2))
+Observable("CtIP_free", CtIP(parp1=None))
+Observable("MRE11_free", MRE11(parp1_rad50=None))
+Observable("DSB_free", DSB(b=MultiState(None, None)))
+
+Observable("MRN", MRE11(parp1_rad50=1) % RAD50(mre11=1, nbs1=2) % NBS1(rad50=2))
+
+Observable("DSB_tot",DSB())
+
+
+
 
 Parameter("DSB_0", 100)
 Parameter("Parp1_0", 1000)
 Parameter("CtIP_0", 1000)
 Parameter("MRE11_0", 1000)
-Parameter("RAD50_0", 100)
-Parameter("NBS1_0", 100)
+Parameter("RAD50_0", 1000)
+Parameter("NBS1_0", 1000)
 Parameter("RPA_0", 1000)
 Parameter("PolQ_0", 1000)
 Parameter("LIG3_0", 1000)
@@ -52,14 +67,14 @@ Initial(LIG3(dsb=MultiState(None, None)), LIG3_0)
 # MRE11 is involved in MMEJ, MRN is involved in HR;
 # Decision between pathways depends on relative amount of MRE11 vs. MRN.
 Parameter("kf_mre11_binds_rad50", 1)
-Parameter("kr_mre11_binds_rad50",1)
+Parameter("kr_mre11_binds_rad50",1000)
 Rule("MRE11_binds_RAD50",
      MRE11(parp1_rad50=None) + RAD50(mre11=None, nbs1=None) |
      MRE11(parp1_rad50=1) % RAD50(mre11=1, nbs1=None),
      kf_mre11_binds_rad50, kr_mre11_binds_rad50)
 
 Parameter("kf_nbs1_binds_mre11_rad50", 1)
-Parameter("kr_nbs1_binds_mre11_rad50", 1)
+Parameter("kr_nbs1_binds_mre11_rad50", 1000)
 Rule("NBS1_binds_MRE11_RAD50",
      MRE11(parp1_rad50=1) % RAD50(mre11=1, nbs1=None) + NBS1(rad50=None) |
      MRE11(parp1_rad50=1) % RAD50(mre11=1, nbs1=2) % NBS1(rad50=2),
@@ -163,7 +178,7 @@ Rule("LIG3_repairs_DSB",
      LIG3(dsb=MultiState(None,None)),
      k_LIG3_repairs_DSB)
 
-Observable("DSB_tot",DSB())
+
 
 
 # print(model)
@@ -171,15 +186,36 @@ Observable("DSB_tot",DSB())
 # print(model.parameters)
 # print(model.rules)
 
-tspan=np.linspace(0,10,1001)
+tspan=np.linspace(0,0.1,1001)
 sim=ScipyOdeSimulator(model, tspan=tspan, verbose=True)
 output=sim.run()
 
+print(model.observables)
+
+# DSB Plot
 plt.figure(constrained_layout=True)
-for obs in model.observables:
+for obs in [DSB_tot, DSB_free]:
      plt.plot(tspan,output.observables[obs.name],lw=2,label=obs.name)
 plt.xlabel("time")
 plt.ylabel("concentration")
+plt.legend(loc="best")
+
+# MRE11 vs. MRN
+plt.figure(constrained_layout=True)
+for obs in [MRE11_free, MRN]:
+     plt.plot(tspan,output.observables[obs.name],lw=2,label=obs.name)
+plt.xlabel("time")
+plt.ylabel("concentration")
+plt.legend(loc="best")
+
+
+# Steps A-C
+plt.figure(constrained_layout=True)
+for obs in [Parp_bound_DSB, Parp_bound_DSB_CtIP, Parp_bound_DSB_MRE11, DSB_free]:
+     plt.plot(tspan,output.observables[obs.name],lw=2,label=obs.name)
+plt.xlabel("time")
+plt.ylabel("concentration")
+plt.xlim(left=-0.001, right=0.02)
 plt.legend(loc="best")
 
 plt.show()

@@ -17,7 +17,7 @@ def create_hr_model_elements(define_observables=True):
     # Helicase displaces now extended invading strand which re-base pairs with other damaged strand
     # second damaged strand anneals to complementary strand of DNA for another round of DNA synthesis
     # Sister strand dissociates
-    # DNA ligase resotres knicks
+    # DNA ligase restores knicks
 
     Parameter("MRN_0", 100)
     Parameter("RPA_0", 100)
