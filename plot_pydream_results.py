@@ -2,10 +2,10 @@ import sys
 import os
 import numpy as np
 import pandas as pd
-from util import plot_pydream_results
+from pydream_util import plot_pydream_results
 
 basepath = 'RESULTS'
-directories = ['Averbeck1988_Normal', 'Averbeck1988_FA150']
+directories = ['Averbeck1988_Normal', os.path.join('Averbeck1988_FA150', 'MOD_STDERR')]
 
 for dirpath in [os.path.join(basepath, directory) for directory in directories]:
 
