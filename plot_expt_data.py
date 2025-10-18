@@ -74,11 +74,12 @@ experiments = np.unique([d['expt_id'] for data in data_list for d in data])
 
 for expt in expt_conds.keys():
     plt.figure(expt, constrained_layout=True)
-    expt_list = [x for x in experiments if expt in x]  # [A, AA], [B, BB], etc.
+    expt_list = [x for x in experiments if expt + '_' in x]  # [A, AA], [B, BB], etc.
     alt_expt_ids = np.array(
         [np.unique([d['alt_expt_id'] for data in data_list for d in data if d['expt_id'] == e])
          for e in expt_list]).flatten()
-    common, unique = find_common_and_unique(alt_expt_ids)
+
+    common, unique = find_common_and_unique(expt_list)
     plt.title(common, fontweight='bold')
     observables = np.unique([d['observable'] for data in data_list for d in data if d['expt_id'] in expt_list])
     for obs in observables:
