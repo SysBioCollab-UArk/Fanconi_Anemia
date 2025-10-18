@@ -2,7 +2,7 @@ import sys
 import os
 import numpy as np
 import pandas as pd
-from pydream_util import plot_pydream_results
+from pydream_util import plot_pydream_output
 
 basepath = 'RESULTS'
 directories = ['Averbeck1988_Normal', os.path.join('Averbeck1988_FA150', 'MOD_STDERR')]
@@ -23,7 +23,7 @@ for dirpath in [os.path.join(basepath, directory) for directory in directories]:
     t_maxes = [expt_data.loc[expt_data['expt_id'] == expt_id, 'time'].max() for expt_id in expt_ids]
     tspans = [np.linspace(0, t_max, int(t_max) * 10 + 1) for t_max in t_maxes]
 
-    plot_pydream_results(dirpath, calibrator, obs_labels=rfp.obs_labels, show_plots=True,
+    plot_pydream_output(dirpath, calibrator, obs_labels=rfp.obs_labels, show_plots=True,
                          plot_ll_args={'cutoff': 2},
                          plot_pd_args={'sharex': 'all'},
                          plot_tc_args={'separate_plots': True, 'save_sim_data': True, 'tspans': tspans},
