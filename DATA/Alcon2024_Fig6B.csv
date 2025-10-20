@@ -1,0 +1,21 @@
+observable,time,time_units,average,stderr,amount_units,expt_id,alt_expt_id
+Interstrand_crosslinks,30,min,1.882062844,0.0188206284,ng/ul,A,$\Delta$D2 + D2$^{WT}$
+Interstrand_crosslinks,80,min,1.853061069,0.0185306107,ng/ul,A,$\Delta$D2 + D2$^{WT}$
+Interstrand_crosslinks,120,min,1.736934556,0.0173693456,ng/ul,A,$\Delta$D2 + D2$^{WT}$
+Interstrand_crosslinks,180,min,1.668145494,0.0166814549,ng/ul,A,$\Delta$D2 + D2$^{WT}$
+Interstrand_crosslinks,240,min,1.548532414,0.0154853241,ng/ul,A,$\Delta$D2 + D2$^{WT}$
+Interstrand_crosslinks,30,min,1.89,0.0188684302,ng/ul,B,$\Delta$D2 + D2$^{EERR}$
+Interstrand_crosslinks,80,min,1.88,0.018791097,ng/ul,B,$\Delta$D2 + D2$^{EERR}$
+Interstrand_crosslinks,120,min,1.83,0.018312127,ng/ul,B,$\Delta$D2 + D2$^{EERR}$
+Interstrand_crosslinks,180,min,1.78,0.0177560179,ng/ul,B,$\Delta$D2 + D2$^{EERR}$
+Interstrand_crosslinks,240,min,1.81,0.0180603333,ng/ul,B,$\Delta$D2 + D2$^{EERR}$
+Interstrand_crosslinks,30,min,1.91,0.0190830943,ng/ul,C,$\Delta$D2 + D2$^{KREE}$
+Interstrand_crosslinks,80,min,1.85,0.0184805284,ng/ul,C,$\Delta$D2 + D2$^{KREE}$
+Interstrand_crosslinks,120,min,1.79,0.0178909353,ng/ul,C,$\Delta$D2 + D2$^{KREE}$
+Interstrand_crosslinks,180,min,1.76,0.0175702076,ng/ul,C,$\Delta$D2 + D2$^{KREE}$
+Interstrand_crosslinks,240,min,1.77,0.0177171242,ng/ul,C,$\Delta$D2 + D2$^{KREE}$
+Interstrand_crosslinks,30,min,1.87,0.0187326827,ng/ul,D,$\Delta$D2
+Interstrand_crosslinks,80,min,1.85,0.0185068064,ng/ul,D,$\Delta$D2
+Interstrand_crosslinks,120,min,1.85,0.0184950566,ng/ul,D,$\Delta$D2
+Interstrand_crosslinks,180,min,1.82,0.0181987359,ng/ul,D,$\Delta$D2
+Interstrand_crosslinks,240,min,1.84,0.0183537434,ng/ul,D,$\Delta$D2
