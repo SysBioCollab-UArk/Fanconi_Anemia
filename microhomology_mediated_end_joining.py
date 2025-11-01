@@ -27,6 +27,7 @@ Monomer("RPA", ["dsb", "parp1"])
 Monomer("PolQ", ["dsb", "parp1", "polq"])
 Monomer("LIG3", ["dsb", "dsb"])
 
+
 # Steps A-C
 Observable("Parp_free", Parp1(dsb=None,ctip_mre11=None))
 Observable("Parp_bound_DSB", Parp1(dsb=1,ctip_mre11=None) % DSB(b=1))
@@ -35,12 +36,23 @@ Observable("Parp_bound_DSB_MRE11", Parp1(dsb=1,ctip_mre11=2) % DSB(b=1) % MRE11(
 Observable("CtIP_free", CtIP(parp1=None))
 Observable("MRE11_free", MRE11(parp1_rad50=None))
 Observable("DSB_free", DSB(b=MultiState(None, None)))
+Observable("RPA_free", RPA(dsb=None, parp1=None))
+
+# Steps D-F
+Observable("RPA_bound_DSB", RPA(dsb=1,parp1=2) % DSB(b=1) % Parp1(dsb=2, ctip_mre11=None))
+#Observable("PolQ_bound_DSB", PolQ(dsb=1,parp1=2, polq=0) % DSB(b=1) % Parp1(dsb=2, ctip_mre11=None))
+
+# Steps G-I
+#Observable("LIG3_bound_DSB", LIG3(dsb=1,dsb=2) % DSB(b=MultiState(1, 2)))
 
 Observable("MRN", MRE11(parp1_rad50=1) % RAD50(mre11=1, nbs1=2) % NBS1(rad50=2))
 
 Observable("DSB_tot",DSB())
 
+Observable("POLQ_bound_DSB", PolQ(dsb=1) % DSB(b=1))
+Observable("POLQ_bound_DSB_full", PolQ(dsb=1, parp1=2) % DSB(b=1) % Parp1(dsb=2, ctip_mre11=None))
 
+Observable("LIG3_bound_DSB", LIG3(dsb=1) % DSB(b=1))
 
 
 Parameter("DSB_0", 100)
@@ -179,14 +191,12 @@ Rule("LIG3_repairs_DSB",
      k_LIG3_repairs_DSB)
 
 
-
-
 # print(model)
 # print(model.monomers)
 # print(model.parameters)
 # print(model.rules)
 
-tspan=np.linspace(0,0.1,1001)
+tspan=np.linspace(0,0.2,1001)
 sim=ScipyOdeSimulator(model, tspan=tspan, verbose=True)
 output=sim.run()
 
@@ -217,6 +227,35 @@ plt.xlabel("time")
 plt.ylabel("concentration")
 plt.xlim(left=-0.001, right=0.02)
 plt.legend(loc="best")
+
+# Not specific steps, just free parp1, ctip, and mre11
+plt.figure(constrained_layout=True)
+for obs in [Parp_free, CtIP_free, MRE11_free]:
+     plt.plot(tspan,output.observables[obs.name],lw=2,label=obs.name)
+plt.xlabel("time")
+plt.ylabel("concentration")
+plt.xlim(left=-0.001, right=0.2)
+plt.legend(loc="best")
+
+# Steps D-F
+plt.figure(constrained_layout=True)
+for obs in [RPA_bound_DSB, RPA_free]:
+     plt.plot(tspan,output.observables[obs.name],lw=2,label=obs.name)
+plt.xlabel("time")
+plt.ylabel("concentration")
+plt.xlim(left=-.0001, right=0.002)
+plt.legend(loc="best")
+
+plt.figure(constrained_layout=True)
+for obs in [POLQ_bound_DSB, POLQ_bound_DSB_full, LIG3_bound_DSB]:
+     plt.plot(tspan,output.observables[obs.name],lw=2,label=obs.name)
+plt.xlabel("time")
+plt.ylabel("concentration")
+plt.xlim(left=-.0005, right=0.08)
+plt.legend(loc="best")
+
+
+
 
 plt.show()
 
