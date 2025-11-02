@@ -27,15 +27,23 @@ Monomer("RPA", ["dsb", "parp1"])
 Monomer("PolQ", ["dsb", "parp1", "polq"])
 Monomer("LIG3", ["dsb", "dsb"])
 
-
 # Steps A-C
-Observable("Parp_free", Parp1(dsb=None,ctip_mre11=None))
-Observable("Parp_bound_DSB", Parp1(dsb=1,ctip_mre11=None) % DSB(b=1))
-Observable("Parp_bound_DSB_CtIP", Parp1(dsb=1,ctip_mre11=2) % DSB(b=1) % CtIP(parp1=2))
-Observable("Parp_bound_DSB_MRE11", Parp1(dsb=1,ctip_mre11=2) % DSB(b=1) % MRE11(parp1_rad50=2))
+Observable('Parp_tot', Parp1())
+Observable("Parp_free", Parp1(dsb=None, ctip_mre11=None))
+Observable("Parp_bound_DSB_STEP1",
+           Parp1(dsb=1, ctip_mre11=None) % DSB(b=MultiState(1, None)), match='species')
+Observable("Parp_DSB_Parp", Parp1(dsb=1) % DSB(b=MultiState(1, 2)) % Parp1(dsb=2))
+Observable("Parp_bound_CtIP", Parp1(ctip_mre11=1) % CtIP(parp1=1))
+Observable("Parp_bound_MRE11", Parp1(ctip_mre11=1) % MRE11(parp1_rad50=1))
+
+
 Observable("CtIP_free", CtIP(parp1=None))
+Observable('MRE11_tot', MRE11())
+Observable('MRE11_Parp1_DSB', MRE11(parp1_rad50=1) % Parp1(ctip_mre11=1, dsb=2) % DSB(b=2), match='species')
+Observable('MRE11_Parp1_RPA', MRE11(parp1_rad50=1) % Parp1(ctip_mre11=1, dsb=2) % RPA(parp1=2))
+Observable('MRE11_Parp1_PolQ', MRE11(parp1_rad50=1) % Parp1(ctip_mre11=1, dsb=2) % PolQ(parp1=2))
 Observable("MRE11_free", MRE11(parp1_rad50=None))
-Observable("DSB_free", DSB(b=MultiState(None, None)))
+Observable("DSB_free", DSB(b=MultiState(None, None)), match='species')
 Observable("RPA_free", RPA(dsb=None, parp1=None))
 
 # Steps D-F
@@ -43,17 +51,13 @@ Observable("RPA_bound_DSB", RPA(dsb=1,parp1=2) % DSB(b=1) % Parp1(dsb=2, ctip_mr
 #Observable("PolQ_bound_DSB", PolQ(dsb=1,parp1=2, polq=0) % DSB(b=1) % Parp1(dsb=2, ctip_mre11=None))
 
 # Steps G-I
-#Observable("LIG3_bound_DSB", LIG3(dsb=1,dsb=2) % DSB(b=MultiState(1, 2)))
-
-Observable("MRN", MRE11(parp1_rad50=1) % RAD50(mre11=1, nbs1=2) % NBS1(rad50=2))
-
-Observable("DSB_tot",DSB())
-
+Observable('MRE11_RAD50', MRE11(parp1_rad50=1) % RAD50(mre11=1))
+# Observable("MRN", MRE11(parp1_rad50=1) % RAD50(mre11=1, nbs1=2) % NBS1(rad50=2))
+Observable("DSB_tot", DSB())
 Observable("POLQ_bound_DSB", PolQ(dsb=1) % DSB(b=1))
-Observable("POLQ_bound_DSB_full", PolQ(dsb=1, parp1=2) % DSB(b=1) % Parp1(dsb=2, ctip_mre11=None))
-
+Observable("POLQ_bound_DSB_full", PolQ(dsb=1, parp1=2) % DSB(b=1) % Parp1(dsb=2, ctip_mre11=ANY))
 Observable("LIG3_bound_DSB", LIG3(dsb=1) % DSB(b=1))
-
+# Observable('LIG3_bound_DSB_twoBonds', LIG3(dsb=MultiState(1,2)) % DSB(b=MultiState(1, 2)))  # TODO
 
 Parameter("DSB_0", 100)
 Parameter("Parp1_0", 1000)
@@ -146,7 +150,6 @@ Rule("RPA_binds_MRE11_Parp1_DSB",
      RPA(dsb=1,parp1=2) % DSB(b=MultiState(1, ANY)) % Parp1(dsb=2, ctip_mre11=4) % MRE11(parp1_rad50=4),
      k_RPA_binds_MRE11_Parp1_DSB)
 
-
 # STEP 5: POLQ displaces RPA
 Parameter("k_PolQ_displaces_RPA", 1)
 Rule("POLQ_displaces_RPA_Parp1_Parp1",
@@ -169,8 +172,6 @@ Rule("PolQ_aligns_microhomologies",
      PolQ(dsb=ANY, parp1=ANY, polq=None) % PolQ(dsb=ANY, parp1=ANY, polq=None) >>
      PolQ(dsb=ANY, parp1=ANY, polq=1) % PolQ(dsb=ANY, parp1=ANY, polq=1),
      k_PolQ_aligns_microhomolgies)
-
-
 
 #STEP 7: LIG3 binds DSB and seals nicks
 Parameter("k_LIG3_binds_DSB", 1)
@@ -196,7 +197,7 @@ Rule("LIG3_repairs_DSB",
 # print(model.parameters)
 # print(model.rules)
 
-tspan=np.linspace(0,0.2,1001)
+tspan=np.linspace(0,10, int(1e5)+1)
 sim=ScipyOdeSimulator(model, tspan=tspan, verbose=True)
 output=sim.run()
 
@@ -212,21 +213,38 @@ plt.legend(loc="best")
 
 # MRE11 vs. MRN
 plt.figure(constrained_layout=True)
-for obs in [MRE11_free, MRN]:
+for obs in [MRE11_tot, MRE11_free, MRE11_Parp1_DSB, MRE11_Parp1_RPA, MRE11_Parp1_PolQ, MRE11_RAD50]: #, MRN]:
      plt.plot(tspan,output.observables[obs.name],lw=2,label=obs.name)
 plt.xlabel("time")
 plt.ylabel("concentration")
-plt.legend(loc="best")
-
+plt.legend(loc=(0.6, 0.6))
 
 # Steps A-C
 plt.figure(constrained_layout=True)
-for obs in [Parp_bound_DSB, Parp_bound_DSB_CtIP, Parp_bound_DSB_MRE11, DSB_free]:
+for obs in [Parp_tot, Parp_free]:
      plt.plot(tspan,output.observables[obs.name],lw=2,label=obs.name)
 plt.xlabel("time")
 plt.ylabel("concentration")
-plt.xlim(left=-0.001, right=0.02)
+# plt.xlim(left=-0.001, right=0.025)
 plt.legend(loc="best")
+
+plt.figure(constrained_layout=True)
+for obs in [Parp_bound_DSB_STEP1, Parp_DSB_Parp, Parp_bound_CtIP, Parp_bound_MRE11]:
+     plt.plot(tspan,output.observables[obs.name],lw=2,label=obs.name)
+plt.xlabel("time")
+plt.ylabel("concentration")
+# plt.xlim(left=-0.001, right=0.025)
+plt.legend(loc="best")
+
+plt.figure(constrained_layout=True)
+for obs in [Parp_bound_DSB_STEP1, Parp_DSB_Parp, Parp_bound_CtIP, Parp_bound_MRE11]:
+     plt.plot(tspan,output.observables[obs.name],lw=2,label=obs.name)
+plt.xlabel("time")
+plt.ylabel("concentration")
+plt.xlim(left=-0.001, right=0.025)
+plt.legend(loc="best")
+
+# TODO: Review the plots below
 
 # Not specific steps, just free parp1, ctip, and mre11
 plt.figure(constrained_layout=True)
@@ -234,7 +252,7 @@ for obs in [Parp_free, CtIP_free, MRE11_free]:
      plt.plot(tspan,output.observables[obs.name],lw=2,label=obs.name)
 plt.xlabel("time")
 plt.ylabel("concentration")
-plt.xlim(left=-0.001, right=0.2)
+# plt.xlim(left=-0.001, right=0.2)
 plt.legend(loc="best")
 
 # Steps D-F
@@ -243,7 +261,7 @@ for obs in [RPA_bound_DSB, RPA_free]:
      plt.plot(tspan,output.observables[obs.name],lw=2,label=obs.name)
 plt.xlabel("time")
 plt.ylabel("concentration")
-plt.xlim(left=-.0001, right=0.002)
+# plt.xlim(left=-.0001, right=0.002)
 plt.legend(loc="best")
 
 plt.figure(constrained_layout=True)
@@ -251,7 +269,7 @@ for obs in [POLQ_bound_DSB, POLQ_bound_DSB_full, LIG3_bound_DSB]:
      plt.plot(tspan,output.observables[obs.name],lw=2,label=obs.name)
 plt.xlabel("time")
 plt.ylabel("concentration")
-plt.xlim(left=-.0005, right=0.08)
+# plt.xlim(left=-.0005, right=0.08)
 plt.legend(loc="best")
 
 
