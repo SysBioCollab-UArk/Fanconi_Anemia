@@ -45,10 +45,11 @@ Observable('MRE11_Parp1_PolQ', MRE11(parp1_rad50=1) % Parp1(ctip_mre11=1, dsb=2)
 Observable("MRE11_free", MRE11(parp1_rad50=None))
 Observable("DSB_free", DSB(b=MultiState(None, None)), match='species')
 Observable("RPA_free", RPA(dsb=None, parp1=None))
+Observable('PolQ_free', PolQ(dsb=None, parp1=None, polq=None))
 
 # Steps D-F
-Observable("RPA_bound_DSB", RPA(dsb=1,parp1=2) % DSB(b=1) % Parp1(dsb=2, ctip_mre11=None))
-#Observable("PolQ_bound_DSB", PolQ(dsb=1,parp1=2, polq=0) % DSB(b=1) % Parp1(dsb=2, ctip_mre11=None))
+Observable("RPA_bound_DSB", RPA(dsb=1, parp1=2) % DSB(b=1) % Parp1(dsb=2))
+Observable("PolQ_bound_DSB", PolQ(dsb=1, parp1=2) % DSB(b=1) % Parp1(dsb=2))
 
 # Steps G-I
 Observable('MRE11_RAD50', MRE11(parp1_rad50=1) % RAD50(mre11=1))
@@ -151,7 +152,7 @@ Rule("RPA_binds_MRE11_Parp1_DSB",
      k_RPA_binds_MRE11_Parp1_DSB)
 
 # STEP 5: POLQ displaces RPA
-Parameter("k_PolQ_displaces_RPA", 1)
+Parameter("k_PolQ_displaces_RPA", 0.01)
 Rule("POLQ_displaces_RPA_Parp1_Parp1",
      PolQ(dsb=None, parp1=None, polq=None) + RPA(dsb=3) %
      DSB(b=MultiState(1, 3)) % Parp1(dsb=2, ctip_mre11=ANY) % RPA(dsb=1, parp1=2) >>
@@ -257,11 +258,11 @@ plt.legend(loc="best")
 
 # Steps D-F
 plt.figure(constrained_layout=True)
-for obs in [RPA_bound_DSB, RPA_free]:
+for obs in [RPA_free, RPA_bound_DSB, PolQ_free, PolQ_bound_DSB]:
      plt.plot(tspan,output.observables[obs.name],lw=2,label=obs.name)
 plt.xlabel("time")
 plt.ylabel("concentration")
-# plt.xlim(left=-.0001, right=0.002)
+plt.xlim(left=-0.01, right=3)
 plt.legend(loc="best")
 
 plt.figure(constrained_layout=True)
@@ -269,7 +270,7 @@ for obs in [POLQ_bound_DSB, POLQ_bound_DSB_full, LIG3_bound_DSB]:
      plt.plot(tspan,output.observables[obs.name],lw=2,label=obs.name)
 plt.xlabel("time")
 plt.ylabel("concentration")
-# plt.xlim(left=-.0005, right=0.08)
+# plt.xlim(left=-0.0005, right=0.08)
 plt.legend(loc="best")
 
 
