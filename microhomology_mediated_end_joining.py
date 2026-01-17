@@ -53,7 +53,8 @@ Observable("PolQ_bound_DSB", PolQ(dsb=1, parp1=2) % DSB(b=1) % Parp1(dsb=2))
 
 # Steps G-I
 Observable('MRE11_RAD50', MRE11(parp1_rad50=1) % RAD50(mre11=1))
-# Observable("MRN", MRE11(parp1_rad50=1) % RAD50(mre11=1, nbs1=2) % NBS1(rad50=2))
+Observable("MRN", MRE11(parp1_rad50=1) % RAD50(mre11=1, nbs1=2) % NBS1(rad50=2))
+# TODO: Make a new plot below that includes MRE11_free, MRE11_RAD50, and MRN.
 Observable("DSB_tot", DSB())
 Observable("POLQ_bound_DSB", PolQ(dsb=1) % DSB(b=1))
 Observable("POLQ_bound_DSB_full", PolQ(dsb=1, parp1=2) % DSB(b=1) % Parp1(dsb=2, ctip_mre11=ANY))
@@ -126,6 +127,15 @@ Rule("CtIP_unbinds_Parp1",
      kf_DSB_CtIP, kr_DSB_CtIP)
 
 # STEP 3: Parp1 recruits MRE11 after CtIP is bound
+# TODO: Update this rule to include 2 separate rules: one for binding of free MRE11 and one for binding MRE11 % RAD50.
+#  Free MRE11 binding should be weak compared to MRE11 % RAD50 binding. This means MRE11 % RAD50 is the species that
+#  actually drives MMEJ activity.
+# TODO: Need to change the MRE11 monomer to Monomer("MRE11", ["rad50", "parp1_nbs1"]) so that MRN cannot bind to Parp1.
+# What’s most consistent mechanistically
+# If you’re trying to be realistic about assembly/competition, a cleaner logic is:
+# Allow MRN to bind even after CtIP is bound, but treat that event as a branch point:
+# If MRN forms on the CtIP-bound DSB, it should pull flux toward HR-like processing / longer resection (or at least “exit MMEJ path”).
+# If you don’t model HR explicitly, you can still represent this as a sink or “handoff” state that removes that population from the MMEJ productive path.
 Parameter("kf_mre11_Parp1",1)
 Parameter("kr_mre11_Parp1",10)
 Rule("MRE11_binds_Parp1",
@@ -214,7 +224,7 @@ plt.legend(loc="best")
 
 # MRE11 vs. MRN
 plt.figure(constrained_layout=True)
-for obs in [MRE11_tot, MRE11_free, MRE11_Parp1_DSB, MRE11_Parp1_RPA, MRE11_Parp1_PolQ, MRE11_RAD50]: #, MRN]:
+for obs in [MRE11_tot, MRE11_free, MRE11_Parp1_DSB, MRE11_Parp1_RPA, MRE11_Parp1_PolQ, MRE11_RAD50, MRN]:
      plt.plot(tspan,output.observables[obs.name],lw=2,label=obs.name)
 plt.xlabel("time")
 plt.ylabel("concentration")
@@ -275,6 +285,40 @@ plt.legend(loc="best")
 
 
 
+import matplotlib.pyplot as plt
+from mpl_toolkits.axes_grid1.inset_locator import inset_axes, mark_inset
+import numpy as np
+
+# Observables of interest
+obs_list = [Parp_bound_DSB_STEP1, Parp_DSB_Parp, Parp_bound_CtIP, Parp_bound_MRE11]
+
+# Main figure: full time (tspan already defined, output already run)
+fig, ax = plt.subplots(constrained_layout=True)
+
+for obs in obs_list:
+    ax.plot(tspan, output.observables[obs.name], lw=2, label=obs.name)
+
+ax.set_xlabel("time")
+ax.set_ylabel("concentration")
+ax.set_title("PARP Binding Steps with Early Time Inset")
+ax.legend(loc="best")
+
+# Inset axes
+axins = inset_axes(ax, width="40%", height="30%", loc='upper right')
+
+# Slice tspan and observables for early time (0-0.025)
+idx_short = np.searchsorted(tspan, 0.025)
+for obs in obs_list:
+    axins.plot(tspan[:idx_short], output.observables[obs.name][:idx_short], lw=2)
+
+# Set limits of inset
+axins.set_xlim(0, 0.025)
+ymin = min([min(output.observables[obs.name][:idx_short]) for obs in obs_list])
+ymax = max([max(output.observables[obs.name][:idx_short]) for obs in obs_list])
+axins.set_ylim(ymin, ymax)
+
+# Optional: draw rectangle on main plot to show inset area
+mark_inset(ax, axins, loc1=2, loc2=4, fc="none", ec="0.5")
 
 plt.show()
 
