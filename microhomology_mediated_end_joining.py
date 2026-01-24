@@ -20,9 +20,10 @@ Model()
 Monomer("DSB", ["b", "b"])
 Monomer("Parp1", ["dsb", "ctip_mre11"])
 Monomer("CtIP", ["parp1"])
-Monomer("MRE11", ["parp1_rad50"] )
-Monomer("RAD50", ["mre11", "nbs1"])
-Monomer("NBS1", ["rad50"])
+#Monomer("MRE11", ["parp1_rad50"] )
+Monomer("MRE11", ["rad50", "parp1_nbs1"])
+Monomer("RAD50", ["mre11"])
+Monomer("NBS1", ["mre11"])
 Monomer("RPA", ["dsb", "parp1"])
 Monomer("PolQ", ["dsb", "parp1", "polq"])
 Monomer("LIG3", ["dsb", "dsb"])
@@ -34,15 +35,15 @@ Observable("Parp_bound_DSB_STEP1",
            Parp1(dsb=1, ctip_mre11=None) % DSB(b=MultiState(1, None)), match='species')
 Observable("Parp_DSB_Parp", Parp1(dsb=1) % DSB(b=MultiState(1, 2)) % Parp1(dsb=2))
 Observable("Parp_bound_CtIP", Parp1(ctip_mre11=1) % CtIP(parp1=1))
-Observable("Parp_bound_MRE11", Parp1(ctip_mre11=1) % MRE11(parp1_rad50=1))
+Observable("Parp_bound_MRE11", Parp1(ctip_mre11=1) % MRE11(parp1_nbs1=1))
 
 
 Observable("CtIP_free", CtIP(parp1=None))
 Observable('MRE11_tot', MRE11())
-Observable('MRE11_Parp1_DSB', MRE11(parp1_rad50=1) % Parp1(ctip_mre11=1, dsb=2) % DSB(b=2), match='species')
-Observable('MRE11_Parp1_RPA', MRE11(parp1_rad50=1) % Parp1(ctip_mre11=1, dsb=2) % RPA(parp1=2))
-Observable('MRE11_Parp1_PolQ', MRE11(parp1_rad50=1) % Parp1(ctip_mre11=1, dsb=2) % PolQ(parp1=2))
-Observable("MRE11_free", MRE11(parp1_rad50=None))
+Observable('MRE11_Parp1_DSB', MRE11(parp1_nbs1=1) % Parp1(ctip_mre11=1, dsb=2) % DSB(b=2), match='species')
+Observable('MRE11_Parp1_RPA', MRE11(parp1_nbs1=1) % Parp1(ctip_mre11=1, dsb=2) % RPA(parp1=2))
+Observable('MRE11_Parp1_PolQ', MRE11(parp1_nbs1=1) % Parp1(ctip_mre11=1, dsb=2) % PolQ(parp1=2))
+Observable("MRE11_free", MRE11(rad50=None, parp1_nbs1=None))
 Observable("DSB_free", DSB(b=MultiState(None, None)), match='species')
 Observable("RPA_free", RPA(dsb=None, parp1=None))
 Observable('PolQ_free', PolQ(dsb=None, parp1=None, polq=None))
@@ -52,9 +53,10 @@ Observable("RPA_bound_DSB", RPA(dsb=1, parp1=2) % DSB(b=1) % Parp1(dsb=2))
 Observable("PolQ_bound_DSB", PolQ(dsb=1, parp1=2) % DSB(b=1) % Parp1(dsb=2))
 
 # Steps G-I
-Observable('MRE11_RAD50', MRE11(parp1_rad50=1) % RAD50(mre11=1))
-Observable("MRN", MRE11(parp1_rad50=1) % RAD50(mre11=1, nbs1=2) % NBS1(rad50=2))
-# TODO: Make a new plot below that includes MRE11_free, MRE11_RAD50, and MRN.
+Observable('MRE11_RAD50', MRE11(rad50=1, parp1_nbs1=None) % RAD50(mre11=1))
+Observable("MRN", MRE11(rad50=1, parp1_nbs1=2) % RAD50(mre11=1) % NBS1(mre11=2))
+Expression("MRE11_no_NBS1", MRE11_tot - MRN)
+
 Observable("DSB_tot", DSB())
 Observable("POLQ_bound_DSB", PolQ(dsb=1) % DSB(b=1))
 Observable("POLQ_bound_DSB_full", PolQ(dsb=1, parp1=2) % DSB(b=1) % Parp1(dsb=2, ctip_mre11=ANY))
@@ -74,9 +76,9 @@ Parameter("LIG3_0", 1000)
 Initial(DSB(b=MultiState(None, None)), DSB_0)
 Initial(Parp1(dsb=None, ctip_mre11=None), Parp1_0)
 Initial(CtIP(parp1=None), CtIP_0)
-Initial(MRE11(parp1_rad50=None), MRE11_0)
-Initial(RAD50(mre11=None, nbs1=None), RAD50_0)
-Initial(NBS1(rad50=None), NBS1_0)
+Initial(MRE11(rad50=None, parp1_nbs1=None), MRE11_0)
+Initial(RAD50(mre11=None), RAD50_0)
+Initial(NBS1(mre11=None), NBS1_0)
 Initial(RPA(dsb=None, parp1=None), RPA_0)
 Initial(PolQ(dsb=None, parp1=None, polq=None),PolQ_0)
 Initial(LIG3(dsb=MultiState(None, None)), LIG3_0)
@@ -87,15 +89,19 @@ Initial(LIG3(dsb=MultiState(None, None)), LIG3_0)
 Parameter("kf_mre11_binds_rad50", 1)
 Parameter("kr_mre11_binds_rad50",1000)
 Rule("MRE11_binds_RAD50",
-     MRE11(parp1_rad50=None) + RAD50(mre11=None, nbs1=None) |
-     MRE11(parp1_rad50=1) % RAD50(mre11=1, nbs1=None),
+     MRE11(rad50=None,parp1_nbs1=None) + RAD50(mre11=None) |
+     MRE11(rad50=1, parp1_nbs1=None) % RAD50(mre11=1),
+     kf_mre11_binds_rad50, kr_mre11_binds_rad50)
+Rule("MRE11_Parp1_binds_RAD50",
+     MRE11(rad50=None,parp1_nbs1=1) % Parp1(ctip_mre11=1) + RAD50(mre11=None) |
+     MRE11(rad50=2, parp1_nbs1=1) % Parp1(ctip_mre11=1) % RAD50(mre11=2),
      kf_mre11_binds_rad50, kr_mre11_binds_rad50)
 
 Parameter("kf_nbs1_binds_mre11_rad50", 1)
-Parameter("kr_nbs1_binds_mre11_rad50", 1000)
+Parameter("kr_nbs1_binds_mre11_rad50", 10)
 Rule("NBS1_binds_MRE11_RAD50",
-     MRE11(parp1_rad50=1) % RAD50(mre11=1, nbs1=None) + NBS1(rad50=None) |
-     MRE11(parp1_rad50=1) % RAD50(mre11=1, nbs1=2) % NBS1(rad50=2),
+     MRE11(rad50=1, parp1_nbs1=None) % RAD50(mre11=1) + NBS1(mre11=None) |
+     MRE11(rad50=1, parp1_nbs1=2) % RAD50(mre11=1) % NBS1(mre11=2),
      kf_nbs1_binds_mre11_rad50, kr_nbs1_binds_mre11_rad50)
 
 # STEP 1a: Parp1 binds to DSB
@@ -127,21 +133,27 @@ Rule("CtIP_unbinds_Parp1",
      kf_DSB_CtIP, kr_DSB_CtIP)
 
 # STEP 3: Parp1 recruits MRE11 after CtIP is bound
-# TODO: Update this rule to include 2 separate rules: one for binding of free MRE11 and one for binding MRE11 % RAD50.
-#  Free MRE11 binding should be weak compared to MRE11 % RAD50 binding. This means MRE11 % RAD50 is the species that
-#  actually drives MMEJ activity.
-# TODO: Need to change the MRE11 monomer to Monomer("MRE11", ["rad50", "parp1_nbs1"]) so that MRN cannot bind to Parp1.
+
 # What’s most consistent mechanistically
 # If you’re trying to be realistic about assembly/competition, a cleaner logic is:
 # Allow MRN to bind even after CtIP is bound, but treat that event as a branch point:
 # If MRN forms on the CtIP-bound DSB, it should pull flux toward HR-like processing / longer resection (or at least “exit MMEJ path”).
 # If you don’t model HR explicitly, you can still represent this as a sink or “handoff” state that removes that population from the MMEJ productive path.
 Parameter("kf_mre11_Parp1",1)
-Parameter("kr_mre11_Parp1",10)
+Parameter("kr_mre11_Parp1",100)
 Rule("MRE11_binds_Parp1",
-     MRE11(parp1_rad50=None) +
+     MRE11(rad50=None, parp1_nbs1=None) +
      DSB(b=MultiState(1,3)) % Parp1(dsb=1, ctip_mre11=None) % Parp1(dsb=3, ctip_mre11= 2) % CtIP(parp1=2) |
-     MRE11(parp1_rad50=4) %
+     MRE11(rad50=None, parp1_nbs1=4) %
+     DSB(b=MultiState(1,3)) % Parp1(dsb=1, ctip_mre11=4) % Parp1(dsb=3, ctip_mre11= 2) % CtIP(parp1=2),
+     kf_mre11_Parp1, kr_mre11_Parp1)
+
+Parameter("kf_mre11_rad50_Parp1",1)
+Parameter("kr_mre11_rad50_Parp1",10)
+Rule("MRE11_Rad50_binds_Parp1",
+     MRE11(rad50=ANY, parp1_nbs1=None) +
+     DSB(b=MultiState(1,3)) % Parp1(dsb=1, ctip_mre11=None) % Parp1(dsb=3, ctip_mre11= 2) % CtIP(parp1=2) |
+     MRE11(rad50=ANY, parp1_nbs1=4) %
      DSB(b=MultiState(1,3)) % Parp1(dsb=1, ctip_mre11=4) % Parp1(dsb=3, ctip_mre11= 2) % CtIP(parp1=2),
      kf_mre11_Parp1, kr_mre11_Parp1)
 
@@ -149,16 +161,16 @@ Rule("MRE11_binds_Parp1",
 Parameter("k_RPA_binds_CtIP_Parp1_DSB", 1)
 Rule("RPA_binds_CtIP_Parp1_DSB",
      RPA(dsb=None, parp1=None) + DSB(b=MultiState(1, ANY))
-     % Parp1(dsb=1, ctip_mre11=3) % CtIP(parp1=3) % MRE11(parp1_rad50=ANY) >>
+     % Parp1(dsb=1, ctip_mre11=3) % CtIP(parp1=3) % MRE11(parp1_nbs1=ANY) >>
      RPA(dsb=1, parp1=5) % DSB(b=MultiState(1, ANY))
-     % Parp1(dsb=5, ctip_mre11=3) % CtIP(parp1=3) % MRE11(parp1_rad50=ANY),
+     % Parp1(dsb=5, ctip_mre11=3) % CtIP(parp1=3) % MRE11(parp1_nbs1=ANY),
      k_RPA_binds_CtIP_Parp1_DSB)
 
 # STEP 4b: RPA displaces Parp1 % MRE11
 Parameter("k_RPA_binds_MRE11_Parp1_DSB", 1)
 Rule("RPA_binds_MRE11_Parp1_DSB",
-     RPA(dsb=None, parp1=None) + DSB(b=MultiState(1, ANY)) % Parp1(dsb=1, ctip_mre11=4) % MRE11(parp1_rad50=4) >>
-     RPA(dsb=1,parp1=2) % DSB(b=MultiState(1, ANY)) % Parp1(dsb=2, ctip_mre11=4) % MRE11(parp1_rad50=4),
+     RPA(dsb=None, parp1=None) + DSB(b=MultiState(1, ANY)) % Parp1(dsb=1, ctip_mre11=4) % MRE11(parp1_nbs1=4) >>
+     RPA(dsb=1,parp1=2) % DSB(b=MultiState(1, ANY)) % Parp1(dsb=2, ctip_mre11=4) % MRE11(parp1_nbs1=4),
      k_RPA_binds_MRE11_Parp1_DSB)
 
 # STEP 5: POLQ displaces RPA
@@ -189,10 +201,10 @@ Parameter("k_LIG3_binds_DSB", 1)
 Rule("LIG3_binds_DSB",
      LIG3(dsb=MultiState(None,None)) + DSB(b=MultiState(1, 2)) %
      PolQ(dsb=1, parp1=3, polq=7) % CtIP(parp1=4) % Parp1(dsb=3, ctip_mre11=4) %
-     PolQ(dsb=2, parp1=5, polq=7) % MRE11(parp1_rad50=6) % Parp1(dsb=5, ctip_mre11=6) >>
+     PolQ(dsb=2, parp1=5, polq=7) % MRE11(parp1_nbs1=6) % Parp1(dsb=5, ctip_mre11=6) >>
      LIG3(dsb=MultiState(1,2)) % DSB(b=MultiState(1, 2)) +
      PolQ(dsb=None, parp1=None, polq=None) + CtIP(parp1=None) + Parp1(dsb=None, ctip_mre11=None) +
-     PolQ(dsb=None, parp1=None, polq=None) + MRE11(parp1_rad50=None) + Parp1(dsb=None, ctip_mre11=None),
+     PolQ(dsb=None, parp1=None, polq=None) + MRE11(parp1_nbs1=None) + Parp1(dsb=None, ctip_mre11=None),
      k_LIG3_binds_DSB)
 
 #STEP 8: DNA is repaired
@@ -213,7 +225,7 @@ sim=ScipyOdeSimulator(model, tspan=tspan, verbose=True)
 output=sim.run()
 
 print(model.observables)
-
+'''
 # DSB Plot
 plt.figure(constrained_layout=True)
 for obs in [DSB_tot, DSB_free]:
@@ -229,7 +241,7 @@ for obs in [MRE11_tot, MRE11_free, MRE11_Parp1_DSB, MRE11_Parp1_RPA, MRE11_Parp1
 plt.xlabel("time")
 plt.ylabel("concentration")
 plt.legend(loc=(0.6, 0.6))
-
+'''
 # Steps A-C
 plt.figure(constrained_layout=True)
 for obs in [Parp_tot, Parp_free]:
@@ -238,7 +250,7 @@ plt.xlabel("time")
 plt.ylabel("concentration")
 # plt.xlim(left=-0.001, right=0.025)
 plt.legend(loc="best")
-
+'''
 plt.figure(constrained_layout=True)
 for obs in [Parp_bound_DSB_STEP1, Parp_DSB_Parp, Parp_bound_CtIP, Parp_bound_MRE11]:
      plt.plot(tspan,output.observables[obs.name],lw=2,label=obs.name)
@@ -254,9 +266,17 @@ plt.xlabel("time")
 plt.ylabel("concentration")
 plt.xlim(left=-0.001, right=0.025)
 plt.legend(loc="best")
+'''
+plt.figure(constrained_layout=True)
+for obs in [MRE11_no_NBS1, MRN]:
+     plt.plot(tspan,output.all[obs.name],lw=2,label=obs.name)
+plt.xlabel("time")
+plt.ylabel("concentration")
+#plt.xlim(left=-0.001, right=0.025)
+plt.legend(loc="best")
 
 # TODO: Review the plots below
-
+'''
 # Not specific steps, just free parp1, ctip, and mre11
 plt.figure(constrained_layout=True)
 for obs in [Parp_free, CtIP_free, MRE11_free]:
@@ -282,7 +302,7 @@ plt.xlabel("time")
 plt.ylabel("concentration")
 # plt.xlim(left=-0.0005, right=0.08)
 plt.legend(loc="best")
-
+'''
 
 
 import matplotlib.pyplot as plt
