@@ -43,6 +43,7 @@ no_sample = ['ICL_0', 'DSB_0', 'Lesion_0', 'k_ICL_synth', 'k_AG20_lump', 'k_BL10
 obs_labels = {'DNA_lesions': 'MAs', 'Interstrand_crosslinks': 'ICLs'}
 
 exp_data_file = os.path.join('DATA', 'Averbeck1988_Normal.csv')
+param_expts_map = None
 
 if __name__ == '__main__':
 
@@ -50,7 +51,8 @@ if __name__ == '__main__':
                                       exp_data_file,
                                       sim_protocols,
                                       priors=custom_priors,
-                                      no_sample=no_sample)
+                                      no_sample=no_sample,
+                                      param_expts_map=param_expts_map)
 
     calibrator.run(niterations=50000, nchains=5, obs_labels=obs_labels, plot_results=True,
                    plot_tc_args={'separate_plots': True, 'save_sim_data': True})
