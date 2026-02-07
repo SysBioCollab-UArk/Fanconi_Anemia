@@ -284,24 +284,38 @@ if DEFINE_OBSERVABLES:
 
 # 3. I + D2 <> I % D2
 Monomer("FANCI", ["fancd2", 'fancp', "state"], {"state": ["x", "ub"]})
-Monomer("FANCD2", ["fanci", "facpx", 'fancp', 'dna', "state"], {"state": ["x", "ub"]})
 Parameter("FANCI_0", 200)
-Parameter("FANCD2_0", 200)
 Initial(FANCI(fancd2=None, fancp=None, state="x"), FANCI_0)
-Initial(FANCD2(fanci=None, facpx=None, fancp=None, dna=None, state="x"), FANCD2_0)
-Parameter("kf_fanci_fancd2", 1)
-Parameter("kr_fanci_fancd2", 1)
-Rule('FANCI_binds_FANCD2',
-     FANCI(fancd2=None, fancp=None, state="x") + FANCD2(fanci=None, facpx=None, fancp=None, dna=None, state="x") |
-     FANCI(fancd2=1, fancp=None, state="x") % FANCD2(fanci=1, facpx=None, fancp=None, dna=None, state="x"),
-     kf_fanci_fancd2, kr_fanci_fancd2)
+Monomer("FANCD2", ["fanci", "facpx", 'fancp', 'dna', "state", "type"],
+        {"state": ["x", "ub"], "type": ['wt', 'mut']})  # TODO: added types to FANCD2 Monomer
+#
+for type in FANCD2.site_states['type']:  # TODO
+    par_init = Parameter("FANCD2_%s_0" % type, 200 if type == "wt" else 0)
+    Initial(FANCD2(fanci=None, facpx=None, fancp=None, dna=None, state="x", type=type), par_init)
+    kf_id2 = Parameter("kf_fanci_fancd2_%s" % type, 1)
+    kr_id2 = Parameter("kr_fanci_fancd2_%s" % type, 1)
+    Rule('FANCI_binds_FANCD2_%s' % type,
+         FANCI(fancd2=None, fancp=None, state="x") + FANCD2(fanci=None, facpx=None, fancp=None, dna=None, state="x", type=type) |
+         FANCI(fancd2=1, fancp=None, state="x") % FANCD2(fanci=1, facpx=None, fancp=None, dna=None, state="x", type=type),
+         kf_id2, kr_id2)
+    if DEFINE_OBSERVABLES:
+        Observable('FANCD2_%s' % type, FANCD2(type=type))
+#
 if DEFINE_OBSERVABLES:
     Observable('FANCI_tot', FANCI())
     Observable('FANCD2_tot', FANCD2())
     Observable("FANCIx_FANCD2x",
                FANCI(fancd2=1, fancp=None, state="x") % FANCD2(fanci=1, facpx=None, fancp=None, dna=None, state="x"))
 
+'''print(model.parameters)
+print(model.rules)
+print(model.observables)
+for initial in model.initials:
+    print(initial)
+quit()'''
+
 # 4. FA complex % FANCM % FANCT binds I % D2
+# for type in FANCD2.site_states['type']:  # TODO
 Parameter("kf_FAcpxMT_binds_ID2", 1)
 Parameter("kr_FAcpxMT_binds_ID2", 1)
 Rule("FAcpx_M_T_binds_I_D2",
@@ -316,6 +330,7 @@ if DEFINE_OBSERVABLES:
                FANCD2(fanci=ANY, facpx=1, fancp=None, dna=None, state="x"))
 
 # 5. ubiquitination of I % D2
+# for type in FANCD2.site_states['type']:  # TODO
 Parameter("k_ID2_Ubiq", 1)
 Rule("FAcpx_I_D2_Ubiq",
      FANCI(fancd2=1, fancp=None, state="x") % FANCD2(fanci=1, facpx=ANY, fancp=None, dna=None, state="x")
@@ -329,6 +344,7 @@ if DEFINE_OBSERVABLES:
     Observable('FANCD2ub_tot', FANCD2(state='ub'))
 
 # 6. release of ID2-Ub from FA complex % FANCM % FANCT
+# for type in FANCD2.site_states['type']:  # TODO
 Parameter("k_FAcpxMT_ICL_release_ID2ub", 10)
 Rule("FAcpx_M_T_ICL_release_ID2ub",
      FA_complex(fancm=3, fanct=ANY, fancd2=2, rev1=None) % FANCM(facpx=3, dna=4) % ICL(b=4) %
@@ -336,7 +352,7 @@ Rule("FAcpx_M_T_ICL_release_ID2ub",
      FA_complex(fancm=3, fanct=ANY, fancd2=None, rev1=None) % FANCM(facpx=3, dna=None) +
      FANCI(fancd2=1, fancp=None, state="ub") % FANCD2(fanci=1, facpx=None, fancp=None, dna=2, state="ub") % ICL(b=2),
      k_FAcpxMT_ICL_release_ID2ub)
-
+# for type in FANCD2.site_states['type']:  # TODO
 Parameter("k_FAcpxMT_Lesion_release_ID2ub", 1)
 Rule("FAcpx_M_T_Lesion_release_ID2ub",
      FA_complex(fancm=3, fanct=ANY, fancd2=2, rev1=None) % FANCM(facpx=3, dna=4) % Lesion(fanc=4) %
@@ -364,6 +380,7 @@ if DEFINE_OBSERVABLES:
     Observable('UAF1_USP1', UAF1(usp1=1) % USP1(uaf1=1))
 
 # 8. Deubiquitination of ID2-Ub by UAF1 and USP1
+# for type in FANCD2.site_states['type']:  # TODO
 Parameter('k_ID2_deubiq', 0.01)  # 0.01
 Rule('ID2_ICL_deubiqitination',
      FANCI(fancd2=1, fancp=None, state="ub") % FANCD2(fanci=1, facpx=None, fancp=None, dna=2, state="ub") %
@@ -385,6 +402,7 @@ Rule("ID2_free_deubiqitination",
 
 # 9. FANCP binds to ID2-Ub
 # TODO: Right now, this happens for ID2-Ub bound both to ICLs and Lesions. Not sure that should be the case.
+# for type in FANCD2.site_states['type']:  # TODO
 Monomer('FANCP', ['fanci', 'fancd2', 'fancq'])
 Parameter('FANCP_0', 50)
 Initial(FANCP(fanci=None, fancd2=None, fancq=None), FANCP_0)
@@ -479,9 +497,9 @@ if __name__ == '__main__':
     sim = ScipyOdeSimulator(model, tspan, verbose=True)
     result = sim.run()
 
-    complexes = ['AG20_total', 'BL100_total', 'CEF_total', 'FAcpx_free', 'FAcpx_ID2ub', 'FANCQ_FANCP_ID2Ub']
+    complexes = []  #'AG20_total', 'BL100_total', 'CEF_total', 'FAcpx_free', 'FAcpx_ID2ub', 'FANCQ_FANCP_ID2Ub']
 
-    mutations = ['Interstrand_crosslinks', 'Double_strand_breaks', 'DNA_lesions']  # , 'Pol_Zeta_DSB', 'Ligase_DSB',
+    mutations = ['Interstrand_crosslinks', 'DNA_lesions']  #'Double_strand_breaks',  , 'Pol_Zeta_DSB', 'Ligase_DSB',
                  # 'Pol_Zeta_Lesion', 'Ligase_lesion']
 
     plt.figure('complexes')
@@ -509,13 +527,13 @@ if __name__ == '__main__':
     plt.legend(loc="best", fontsize=14)
     plt.tight_layout()
 
-    plt.figure()
-    obs2plot=["DNA_lesions", "FANCM_lesion", 'FANCM_tot', 'FANCM_free', "Lesion_free", "Lesion_ner_ANY_fanc_None",
-              "Lesion_ner_None_fanc_ANY", "Lesion_ner_ANY_fanc_ANY"]
-    for obs in obs2plot:
-        plt.plot(tspan, result.observables[obs], lw=2, label=obs)
-    plt.plot(tspan, result.observable(Lesion(fanc=None)), lw=2, label='Lesion_fancm_None')
-    plt.legend(loc="best", ncol=1)
-    plt.tight_layout()
+    # plt.figure()
+    # obs2plot=["DNA_lesions", "FANCM_lesion", 'FANCM_tot', 'FANCM_free', "Lesion_free", "Lesion_ner_ANY_fanc_None",
+    #           "Lesion_ner_None_fanc_ANY", "Lesion_ner_ANY_fanc_ANY"]
+    # for obs in obs2plot:
+    #     plt.plot(tspan, result.observables[obs], lw=2, label=obs)
+    # plt.plot(tspan, result.observable(Lesion(fanc=None)), lw=2, label='Lesion_fancm_None')
+    # plt.legend(loc="best", ncol=1)
+    # plt.tight_layout()
 
     plt.show()

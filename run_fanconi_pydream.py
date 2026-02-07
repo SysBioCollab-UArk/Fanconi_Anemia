@@ -4,22 +4,6 @@ from SIM_PROTOCOLS.sim_protocols import *
 from pysb.simulator import ScipyOdeSimulator
 import os
 
-# Monomer('FANCA', ['fancg', 'faap20']),
-# Monomer('FANCG', ['fanca']),
-# Monomer('FAAP20', ['fanca']),
-# Monomer('FANCB', ['fancl', 'faap100']),
-# Monomer('FANCL', ['fancb', 'faap100']),
-# Monomer('FAAP100', ['fancb', 'fancl']),
-# Monomer('FANCF', ['fancc']),
-# Monomer('FANCC', ['fancf', 'fance']),
-# Monomer('FANCE', ['fancc']),
-# Monomer('FANCM', ['dna', 'facpx']),
-# Monomer('FANCT', ['facpx']),
-# Monomer('FANCI', ['fancd2', 'fancp', 'state'], {'state': ['x', 'ub']}),
-# Monomer('FANCD2', ['fanci', 'facpx', 'fancp', 'dna', 'state'], {'state': ['x', 'ub']}),
-# Monomer('FANCP', ['fanci', 'fancd2', 'fancq']),
-# Monomer('FANCQ', ['fancp']),
-
 # Below are reasonable starting guesses for initial concentrations of key FA pathway proteins, assuming a
 # nuclear volume of ~300 fL for a human epithelial cell:
 # -------------------------------------------------------
