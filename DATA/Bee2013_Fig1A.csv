@@ -1,0 +1,7 @@
+observable,time,time_units,average,stderr,amount_units,expt_id,alt_expt_id
+Double_strand_breaks,0,hr,0,0,number,A,Bee2013_Fig1A
+Double_strand_breaks,2,hr,7.667731629,1.357827476,number,A,Bee2013_Fig1A
+Double_strand_breaks,5,hr,33.8658147,3.993610224,number,A,Bee2013_Fig1A
+Double_strand_breaks,10,hr,61.50159744,1.437699681,number,A,Bee2013_Fig1A
+Double_strand_breaks,15,hr,76.8370607,5.111821086,number,A,Bee2013_Fig1A
+Double_strand_breaks,25,hr,90.09584665,1.118210863,number,A,Bee2013_Fig1A
