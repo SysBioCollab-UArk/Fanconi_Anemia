@@ -2,7 +2,7 @@ from pysb import *
 from pysb.util import alias_model_components
 
 
-def create_hr_model_elements(define_observables=True):
+def create_model_elements(define_observables=True):
 
     Monomer("MRN", ["dsb"])
     # MRN Complex (Mre11-Rad50-Nbs1) comes in contact with damaged DNA at 5' ends

@@ -2,7 +2,7 @@ from pysb import *
 from pysb.util import alias_model_components
 
 
-def create_ner_model_elements(define_observables=True):
+def create_model_elements(define_observables=True):
 
     # Monomers
     Monomer("RAD23B", ["xpc"])

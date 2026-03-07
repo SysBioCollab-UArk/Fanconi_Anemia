@@ -1,4 +1,5 @@
 from pysb import *
+from pysb.util import alias_model_components
 
 
 def create_model_elements(define_observables=True):
@@ -15,16 +16,16 @@ def create_model_elements(define_observables=True):
     # Initial(A(a=MultiState(('u', 1), 'p')) %
     #         A(a=MultiState(('u', 1), 'u')), A_0)
 
-    Monomer("DSB", ["b", "b"])
     Monomer("Parp1", ["dsb", "ctip_mre11"])
     Monomer("CtIP", ["parp1"])
     #Monomer("MRE11", ["parp1_rad50"] )
     Monomer("MRE11", ["rad50", "parp1_nbs1"])
     Monomer("RAD50", ["mre11"])
     Monomer("NBS1", ["mre11"])
-    Monomer("RPA", ["dsb", "parp1"])
     Monomer("PolQ", ["dsb", "parp1", "polq"])
     Monomer("LIG3", ["dsb", "dsb"])
+
+    alias_model_components()
 
     # Steps A-C
     Observable('Parp_tot', Parp1())
@@ -219,6 +220,8 @@ if __name__ == '__main__':
     import matplotlib.pyplot as plt
 
     Model()
+    Monomer("DSB", ["b", "b"])  # defined in fanconi_anemia_core_pathway.py
+    Monomer("RPA", ["dsb", "parp1"])  # defined in homologous_recombination.py
     create_model_elements(define_observables=True)
 
     # print(model)

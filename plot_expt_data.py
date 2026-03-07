@@ -1,5 +1,3 @@
-from fanconi_anemia import model
-from pysb.simulator import ScipyOdeSimulator
 import numpy as np
 import matplotlib.pyplot as plt
 import os
@@ -70,7 +68,7 @@ def plot_expt_id_data(expt_data, expt_id, obs_same_plot=False, label_dict=None, 
         plt.legend(loc='best')
 
 
-def plot_expt_data(expt_datafiles, expt_ids=None, **kwargs):
+def plot_expt_data(expt_datafiles, expt_ids=None, show_plot=False, save_plot=False, **kwargs):
 
     if isinstance(expt_datafiles, str):
         expt_datafiles = [expt_datafiles]
@@ -98,8 +96,18 @@ def plot_expt_data(expt_datafiles, expt_ids=None, **kwargs):
             print('expt_id:', e_id)
             plot_expt_id_data(data, e_id, legend_suffix=legend_suffix[i], **kwargs)
 
+    if save_plot is not False:
+        outpath = '.' if save_plot is True else save_plot
+        filename = kwargs.get('filename', 'DATA')
+        plt.savefig(os.path.join(outpath, filename))
+
+    if show_plot:
+        plt.show()
+
 
 if __name__ == '__main__':
+    from FA_merged_model import model
+    from pysb.simulator import ScipyOdeSimulator
 
     ##### PLOT EXPERIMENTAL DATA #####
     '''
