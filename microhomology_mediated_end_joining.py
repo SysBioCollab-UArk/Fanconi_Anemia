@@ -51,9 +51,10 @@ def create_model_elements(define_observables=True):
 
     # Steps G-I
     Observable('MRE11_RAD50', MRE11(rad50=1, parp1_nbs1=None) % RAD50(mre11=1))
-    Observable("MRN", MRE11(rad50=1, parp1_nbs1=2) % RAD50(mre11=1) % NBS1(mre11=2))
+    # Observable("MRN", MRE11(rad50=1, parp1_nbs1=2) % RAD50(mre11=1) % NBS1(mre11=2))
+    Observable('MRN_free', MRN(dsb=None))
     alias_model_components()
-    Expression("MRE11_no_NBS1", MRE11_tot - MRN)
+    Expression("MRE11_no_NBS1", MRE11_tot - MRN_free)
 
     Observable("DSB_tot", DSB())
     Observable("POLQ_bound_DSB", PolQ(dsb=1) % DSB(b=1))
@@ -84,14 +85,13 @@ def create_model_elements(define_observables=True):
     Initial(LIG3(dsb=MultiState(None, None)), LIG3_0)
 
     # STEP 0: Two-step binding process to form MRN from MRE11, RAD50, and NBS1:
-    # MRE11 is involved in MMEJ, MRN is involved in HR;
-    # Decision between pathways depends on relative amount of MRE11 vs. MRN.
+    #    MRE11 is involved in MMEJ, MRN is involved in HR;. Decision between pathways depends on relative amount of
+    #    MRE11 vs. MRN
     Parameter("kf_mre11_binds_rad50", 1)
     Parameter("kr_mre11_binds_rad50",1000)
     alias_model_components()
     Rule("MRE11_binds_RAD50",
-         MRE11(rad50=None,parp1_nbs1=None) + RAD50(mre11=None) |
-         MRE11(rad50=1, parp1_nbs1=None) % RAD50(mre11=1),
+         MRE11(rad50=None,parp1_nbs1=None) + RAD50(mre11=None) | MRE11(rad50=1, parp1_nbs1=None) % RAD50(mre11=1),
          kf_mre11_binds_rad50, kr_mre11_binds_rad50)
     Rule("MRE11_Parp1_binds_RAD50",
          MRE11(rad50=None,parp1_nbs1=1) % Parp1(ctip_mre11=1) + RAD50(mre11=None) |
@@ -102,8 +102,8 @@ def create_model_elements(define_observables=True):
     Parameter("kr_nbs1_binds_mre11_rad50", 10)
     alias_model_components()
     Rule("NBS1_binds_MRE11_RAD50",
-         MRE11(rad50=1, parp1_nbs1=None) % RAD50(mre11=1) + NBS1(mre11=None) |
-         MRE11(rad50=1, parp1_nbs1=2) % RAD50(mre11=1) % NBS1(mre11=2),
+         MRE11(rad50=1, parp1_nbs1=None) % RAD50(mre11=1) + NBS1(mre11=None) | MRN(dsb=None),
+         # MRE11(rad50=1, parp1_nbs1=2) % RAD50(mre11=1) % NBS1(mre11=2),
          kf_nbs1_binds_mre11_rad50, kr_nbs1_binds_mre11_rad50)
 
     # STEP 1a: Parp1 binds to DSB
@@ -236,6 +236,7 @@ if __name__ == '__main__':
     Model()
     Monomer("DSB", ["b", "b"])  # defined in fanconi_anemia_core_pathway.py
     Monomer("RPA", ["dsb", "parp1"])  # defined in homologous_recombination.py
+    Monomer("MRN", ["dsb"])  # defined in homologous_recombination.py
     create_model_elements(define_observables=True)
 
     # print(model)
@@ -291,7 +292,7 @@ if __name__ == '__main__':
     plt.legend(loc="best")
     '''
     plt.figure(constrained_layout=True)
-    for obs in [MRE11_no_NBS1, MRN]:
+    for obs in [MRE11_no_NBS1, MRN_free]:
          plt.plot(tspan,output.all[obs.name],lw=2,label=obs.name)
     plt.xlabel("time")
     plt.ylabel("concentration")
