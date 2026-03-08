@@ -35,8 +35,6 @@ def create_model_elements(define_observables=True):
     Observable("Parp_DSB_Parp", Parp1(dsb=1) % DSB(b=MultiState(1, 2)) % Parp1(dsb=2))
     Observable("Parp_bound_CtIP", Parp1(ctip_mre11=1) % CtIP(parp1=1))
     Observable("Parp_bound_MRE11", Parp1(ctip_mre11=1) % MRE11(parp1_nbs1=1))
-
-
     Observable("CtIP_free", CtIP(parp1=None))
     Observable('MRE11_tot', MRE11())
     Observable('MRE11_Parp1_DSB', MRE11(parp1_nbs1=1) % Parp1(ctip_mre11=1, dsb=2) % DSB(b=2), match='species')
@@ -54,6 +52,7 @@ def create_model_elements(define_observables=True):
     # Steps G-I
     Observable('MRE11_RAD50', MRE11(rad50=1, parp1_nbs1=None) % RAD50(mre11=1))
     Observable("MRN", MRE11(rad50=1, parp1_nbs1=2) % RAD50(mre11=1) % NBS1(mre11=2))
+    alias_model_components()
     Expression("MRE11_no_NBS1", MRE11_tot - MRN)
 
     Observable("DSB_tot", DSB())
@@ -72,6 +71,8 @@ def create_model_elements(define_observables=True):
     Parameter("PolQ_0", 1000)
     Parameter("LIG3_0", 1000)
 
+    alias_model_components()
+
     Initial(DSB(b=MultiState(None, None)), DSB_0)
     Initial(Parp1(dsb=None, ctip_mre11=None), Parp1_0)
     Initial(CtIP(parp1=None), CtIP_0)
@@ -87,6 +88,7 @@ def create_model_elements(define_observables=True):
     # Decision between pathways depends on relative amount of MRE11 vs. MRN.
     Parameter("kf_mre11_binds_rad50", 1)
     Parameter("kr_mre11_binds_rad50",1000)
+    alias_model_components()
     Rule("MRE11_binds_RAD50",
          MRE11(rad50=None,parp1_nbs1=None) + RAD50(mre11=None) |
          MRE11(rad50=1, parp1_nbs1=None) % RAD50(mre11=1),
@@ -98,6 +100,7 @@ def create_model_elements(define_observables=True):
 
     Parameter("kf_nbs1_binds_mre11_rad50", 1)
     Parameter("kr_nbs1_binds_mre11_rad50", 10)
+    alias_model_components()
     Rule("NBS1_binds_MRE11_RAD50",
          MRE11(rad50=1, parp1_nbs1=None) % RAD50(mre11=1) + NBS1(mre11=None) |
          MRE11(rad50=1, parp1_nbs1=2) % RAD50(mre11=1) % NBS1(mre11=2),
@@ -106,6 +109,7 @@ def create_model_elements(define_observables=True):
     # STEP 1a: Parp1 binds to DSB
     Parameter("kf_DSB_Parp1", 1)
     Parameter("kr_DSB_Parp1", 10)
+    alias_model_components()
     Rule("Parp1_binds_DSB",
          DSB(b=None) + Parp1(dsb=None, ctip_mre11=None) >> DSB(b=1) % Parp1(dsb=1, ctip_mre11=None),
          kf_DSB_Parp1)
@@ -125,6 +129,7 @@ def create_model_elements(define_observables=True):
     # STEP 2: Parp1 recruits CtIP
     Parameter("kf_DSB_CtIP", 1)
     Parameter("kr_DSB_CtIP", 10)
+    alias_model_components()
     Rule("CtIP_unbinds_Parp1",
          CtIP(parp1=None) +
          DSB(b=MultiState(1,2)) % Parp1(dsb=1, ctip_mre11=None) % Parp1(dsb=2, ctip_mre11=None) |
@@ -140,6 +145,7 @@ def create_model_elements(define_observables=True):
     # If you don’t model HR explicitly, you can still represent this as a sink or “handoff” state that removes that population from the MMEJ productive path.
     Parameter("kf_mre11_Parp1",1)
     Parameter("kr_mre11_Parp1",100)
+    alias_model_components()
     Rule("MRE11_binds_Parp1",
          MRE11(rad50=None, parp1_nbs1=None) +
          DSB(b=MultiState(1,3)) % Parp1(dsb=1, ctip_mre11=None) % Parp1(dsb=3, ctip_mre11= 2) % CtIP(parp1=2) |
@@ -149,6 +155,7 @@ def create_model_elements(define_observables=True):
 
     Parameter("kf_mre11_rad50_Parp1",1)
     Parameter("kr_mre11_rad50_Parp1",10)
+    alias_model_components()
     Rule("MRE11_Rad50_binds_Parp1",
          MRE11(rad50=ANY, parp1_nbs1=None) +
          DSB(b=MultiState(1,3)) % Parp1(dsb=1, ctip_mre11=None) % Parp1(dsb=3, ctip_mre11= 2) % CtIP(parp1=2) |
@@ -158,38 +165,44 @@ def create_model_elements(define_observables=True):
 
     # STEP 4a: RPA displaces Parp1 % CtIP
     Parameter("k_RPA_binds_CtIP_Parp1_DSB", 1)
+    alias_model_components()
     Rule("RPA_binds_CtIP_Parp1_DSB",
-         RPA(dsb=None, parp1=None) + DSB(b=MultiState(1, ANY))
-         % Parp1(dsb=1, ctip_mre11=3) % CtIP(parp1=3) % MRE11(parp1_nbs1=ANY) >>
-         RPA(dsb=1, parp1=5) % DSB(b=MultiState(1, ANY))
-         % Parp1(dsb=5, ctip_mre11=3) % CtIP(parp1=3) % MRE11(parp1_nbs1=ANY),
+         RPA(dsb=None, parp1=None) +
+         DSB(b=MultiState(1, ANY)) % Parp1(dsb=1, ctip_mre11=3) % CtIP(parp1=3) % MRE11(parp1_nbs1=ANY) >>
+         RPA(dsb=1, parp1=5) %
+         DSB(b=MultiState(1, ANY)) % Parp1(dsb=5, ctip_mre11=3) % CtIP(parp1=3) % MRE11(parp1_nbs1=ANY),
          k_RPA_binds_CtIP_Parp1_DSB)
 
     # STEP 4b: RPA displaces Parp1 % MRE11
     Parameter("k_RPA_binds_MRE11_Parp1_DSB", 1)
+    alias_model_components()
     Rule("RPA_binds_MRE11_Parp1_DSB",
-         RPA(dsb=None, parp1=None) + DSB(b=MultiState(1, ANY)) % Parp1(dsb=1, ctip_mre11=4) % MRE11(parp1_nbs1=4) >>
-         RPA(dsb=1,parp1=2) % DSB(b=MultiState(1, ANY)) % Parp1(dsb=2, ctip_mre11=4) % MRE11(parp1_nbs1=4),
+         RPA(dsb=None, parp1=None) +
+         DSB(b=MultiState(1, ANY)) % Parp1(dsb=1, ctip_mre11=4) % MRE11(parp1_nbs1=4) >>
+         RPA(dsb=1,parp1=2) %
+         DSB(b=MultiState(1, ANY)) % Parp1(dsb=2, ctip_mre11=4) % MRE11(parp1_nbs1=4),
          k_RPA_binds_MRE11_Parp1_DSB)
 
     # STEP 5: POLQ displaces RPA
     Parameter("k_PolQ_displaces_RPA", 0.01)
+    alias_model_components()
     Rule("POLQ_displaces_RPA_Parp1_Parp1",
-         PolQ(dsb=None, parp1=None, polq=None) + RPA(dsb=3) %
-         DSB(b=MultiState(1, 3)) % Parp1(dsb=2, ctip_mre11=ANY) % RPA(dsb=1, parp1=2) >>
-         PolQ(dsb=1, parp1=2, polq=None) % RPA(dsb=3) %
-         DSB(b=MultiState(1, 3)) % Parp1(dsb=2, ctip_mre11=ANY) + RPA(dsb=None, parp1=None),
+         PolQ(dsb=None, parp1=None, polq=None) +
+         RPA(dsb=3) % DSB(b=MultiState(1, 3)) % Parp1(dsb=2, ctip_mre11=ANY) % RPA(dsb=1, parp1=2) >>
+         PolQ(dsb=1, parp1=2, polq=None) %
+         RPA(dsb=3) % DSB(b=MultiState(1, 3)) % Parp1(dsb=2, ctip_mre11=ANY) + RPA(dsb=None, parp1=None),
          k_PolQ_displaces_RPA)
 
     Rule("POLQ_displaces_RPA_Parp1_POLQ",
-         PolQ(dsb=None, parp1=None, polq=None) + PolQ(dsb=3) %
-         DSB(b=MultiState(1, 3)) % Parp1(dsb=2, ctip_mre11=ANY) % RPA(dsb=1, parp1=2) >>
-         PolQ(dsb=1, parp1=2, polq=None) % PolQ(dsb=3) %
-         DSB(b=MultiState(1, 3)) % Parp1(dsb=2, ctip_mre11=ANY) + RPA(dsb=None, parp1=None),
+         PolQ(dsb=None, parp1=None, polq=None) +
+         PolQ(dsb=3) % DSB(b=MultiState(1, 3)) % Parp1(dsb=2, ctip_mre11=ANY) % RPA(dsb=1, parp1=2) >>
+         PolQ(dsb=1, parp1=2, polq=None) %
+         PolQ(dsb=3) % DSB(b=MultiState(1, 3)) % Parp1(dsb=2, ctip_mre11=ANY) + RPA(dsb=None, parp1=None),
          k_PolQ_displaces_RPA)
 
     #STEP 6: POLQ aligns microhomologies and extends DNA (POLQs bind to each other)
     Parameter("k_PolQ_aligns_microhomolgies", 1)
+    alias_model_components()
     Rule("PolQ_aligns_microhomologies",
          PolQ(dsb=ANY, parp1=ANY, polq=None) % PolQ(dsb=ANY, parp1=ANY, polq=None) >>
          PolQ(dsb=ANY, parp1=ANY, polq=1) % PolQ(dsb=ANY, parp1=ANY, polq=1),
@@ -197,6 +210,7 @@ def create_model_elements(define_observables=True):
 
     #STEP 7: LIG3 binds DSB and seals nicks
     Parameter("k_LIG3_binds_DSB", 1)
+    alias_model_components()
     Rule("LIG3_binds_DSB",
          LIG3(dsb=MultiState(None,None)) + DSB(b=MultiState(1, 2)) %
          PolQ(dsb=1, parp1=3, polq=7) % CtIP(parp1=4) % Parp1(dsb=3, ctip_mre11=4) %
@@ -208,9 +222,9 @@ def create_model_elements(define_observables=True):
 
     #STEP 8: DNA is repaired
     Parameter("k_LIG3_repairs_DSB", 1)
+    alias_model_components()
     Rule("LIG3_repairs_DSB",
-         LIG3(dsb=MultiState(1,2)) % DSB(b=MultiState(1, 2)) >>
-         LIG3(dsb=MultiState(None,None)),
+         LIG3(dsb=MultiState(1,2)) % DSB(b=MultiState(1, 2)) >> LIG3(dsb=MultiState(None,None)),
          k_LIG3_repairs_DSB)
 
 
