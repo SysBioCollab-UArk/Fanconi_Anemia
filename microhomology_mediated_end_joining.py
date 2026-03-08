@@ -116,14 +116,14 @@ def create_model_elements(define_observables=True):
 
     # STEP 1b: Parp1 unbinds from DSB
     Rule("Parp1_unbinds_DSB",
-         DSB(b=MultiState(1,None)) % Parp1(dsb=1, ctip_mre11=None) >>
-         DSB(b=MultiState(None,None)) + Parp1(dsb=None, ctip_mre11=None),
+         DSB(b=MultiState(1, None)) % Parp1(dsb=1, ctip_mre11=None) >>
+         DSB(b=MultiState(None, None)) + Parp1(dsb=None, ctip_mre11=None),
          kr_DSB_Parp1)
 
     # STEP 1c: Parp1 unbinds from DSB-Parp1
     Rule("Parp1_unbinds_DSB_Parp1",
-         DSB(b=MultiState(1,2)) % Parp1(dsb=1, ctip_mre11=None) % Parp1(dsb=2, ctip_mre11=None) >>
-         DSB(b=MultiState(1,None)) % Parp1(dsb=1, ctip_mre11=None) + Parp1(dsb=None, ctip_mre11=None),
+         DSB(b=MultiState(1, 2)) % Parp1(dsb=1, ctip_mre11=None) % Parp1(dsb=2, ctip_mre11=None) >>
+         DSB(b=MultiState(1, None)) % Parp1(dsb=1, ctip_mre11=None) + Parp1(dsb=None, ctip_mre11=None),
          kr_DSB_Parp1)
 
     # STEP 2: Parp1 recruits CtIP
@@ -132,8 +132,9 @@ def create_model_elements(define_observables=True):
     alias_model_components()
     Rule("CtIP_unbinds_Parp1",
          CtIP(parp1=None) +
-         DSB(b=MultiState(1,2)) % Parp1(dsb=1, ctip_mre11=None) % Parp1(dsb=2, ctip_mre11=None) |
-         DSB(b=MultiState(1,2)) % Parp1(dsb=1, ctip_mre11=None) % Parp1(dsb=2, ctip_mre11=3) % CtIP(parp1=3),
+         DSB(b=MultiState(1, 2)) % Parp1(dsb=1, ctip_mre11=None) % Parp1(dsb=2, ctip_mre11=None) |
+         CtIP(parp1=3) %
+         DSB(b=MultiState(1, 2)) % Parp1(dsb=1, ctip_mre11=None) % Parp1(dsb=2, ctip_mre11=3),
          kf_DSB_CtIP, kr_DSB_CtIP)
 
     # STEP 3: Parp1 recruits MRE11 after CtIP is bound
@@ -148,9 +149,9 @@ def create_model_elements(define_observables=True):
     alias_model_components()
     Rule("MRE11_binds_Parp1",
          MRE11(rad50=None, parp1_nbs1=None) +
-         DSB(b=MultiState(1,3)) % Parp1(dsb=1, ctip_mre11=None) % Parp1(dsb=3, ctip_mre11= 2) % CtIP(parp1=2) |
+         DSB(b=MultiState(1, 3)) % Parp1(dsb=1, ctip_mre11=None) % Parp1(dsb=3, ctip_mre11= 2) % CtIP(parp1=2) |
          MRE11(rad50=None, parp1_nbs1=4) %
-         DSB(b=MultiState(1,3)) % Parp1(dsb=1, ctip_mre11=4) % Parp1(dsb=3, ctip_mre11= 2) % CtIP(parp1=2),
+         DSB(b=MultiState(1, 3)) % Parp1(dsb=1, ctip_mre11=4) % Parp1(dsb=3, ctip_mre11= 2) % CtIP(parp1=2),
          kf_mre11_Parp1, kr_mre11_Parp1)
 
     Parameter("kf_mre11_rad50_Parp1",1)
@@ -158,9 +159,9 @@ def create_model_elements(define_observables=True):
     alias_model_components()
     Rule("MRE11_Rad50_binds_Parp1",
          MRE11(rad50=ANY, parp1_nbs1=None) +
-         DSB(b=MultiState(1,3)) % Parp1(dsb=1, ctip_mre11=None) % Parp1(dsb=3, ctip_mre11= 2) % CtIP(parp1=2) |
+         DSB(b=MultiState(1, 3)) % Parp1(dsb=1, ctip_mre11=None) % Parp1(dsb=3, ctip_mre11= 2) % CtIP(parp1=2) |
          MRE11(rad50=ANY, parp1_nbs1=4) %
-         DSB(b=MultiState(1,3)) % Parp1(dsb=1, ctip_mre11=4) % Parp1(dsb=3, ctip_mre11= 2) % CtIP(parp1=2),
+         DSB(b=MultiState(1, 3)) % Parp1(dsb=1, ctip_mre11=4) % Parp1(dsb=3, ctip_mre11= 2) % CtIP(parp1=2),
          kf_mre11_Parp1, kr_mre11_Parp1)
 
     # STEP 4a: RPA displaces Parp1 % CtIP
@@ -232,11 +233,14 @@ if __name__ == '__main__':
     from pysb.simulator import ScipyOdeSimulator
     import numpy as np
     import matplotlib.pyplot as plt
+    from mpl_toolkits.axes_grid1.inset_locator import inset_axes, mark_inset
 
     Model()
+
     Monomer("DSB", ["b", "b"])  # defined in fanconi_anemia_core_pathway.py
     Monomer("RPA", ["dsb", "parp1"])  # defined in homologous_recombination.py
     Monomer("MRN", ["dsb"])  # defined in homologous_recombination.py
+
     create_model_elements(define_observables=True)
 
     # print(model)
@@ -328,11 +332,6 @@ if __name__ == '__main__':
     plt.legend(loc="best")
     '''
 
-
-    import matplotlib.pyplot as plt
-    from mpl_toolkits.axes_grid1.inset_locator import inset_axes, mark_inset
-    import numpy as np
-
     # Observables of interest
     obs_list = [Parp_bound_DSB_STEP1, Parp_DSB_Parp, Parp_bound_CtIP, Parp_bound_MRE11]
 
@@ -364,7 +363,7 @@ if __name__ == '__main__':
     # Optional: draw rectangle on main plot to show inset area
     mark_inset(ax, axins, loc1=2, loc2=4, fc="none", ec="0.5")
 
-    plt.show()
-
     for sp in model.species:
          print(sp)
+
+    plt.show()
