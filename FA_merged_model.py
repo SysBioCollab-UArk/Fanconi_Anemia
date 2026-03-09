@@ -18,10 +18,10 @@ DEFINE_OBSERVABLES = True
 
 Model()
 
-# shared Monomers
 if include_MMEJ:
     raise Exception('MMEJ pathway not yet available')
 
+# shared model elements
 if include_FACore or include_HR or include_MMEJ:
     Monomer('DSB', ['b'])  # fanconi_anemia_pathway.py
     # Monomer('DSB', ['b'])  # homologous_recombination.py
