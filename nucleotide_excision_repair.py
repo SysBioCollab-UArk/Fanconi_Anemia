@@ -28,9 +28,9 @@ def create_model_elements(define_observables=True):
     Parameter('kr_XPD_TFIIH_lesion', 1)
     Parameter('k_FANCQ_lesion', 1)
     Parameter('k_Pol_Zeta_lesion', 1)
-    Parameter('k_Ligase_lesion', 1)
+    Parameter('k_LIG1_lesion', 1)
     Parameter('k_unbind_lesion', 1e3)
-    Parameter('k_ligase_repairs_lesion', 1)
+    Parameter('k_LIG1_repairs_lesion', 1)
 
     alias_model_components()
 
@@ -55,8 +55,8 @@ def create_model_elements(define_observables=True):
     # 6. XPG binds to the **DNA adduct**
 
     # 7. Polymerase zeta binds DNA adduct, displaces FANCQ/ERCC1 + XPG
-    # 8. DNA ligase binds DNA adduct, displaces polymerase zeta
-    # 9. DNA ligase repairs the DNA adduct
+    # 8. DNA ligase-1 binds DNA adduct, displaces polymerase zeta
+    # 9. DNA ligase-1 repairs the DNA adduct
 
     Rule("XPC_binds_Lesion",
          XPC(lesion=None, rad23b=None) + Lesion(ner=None, fanc=ANY) |
@@ -128,23 +128,27 @@ def create_model_elements(define_observables=True):
          Pol_Zeta(dna=None) + Lesion(ner=None, fanc=1) % FANCM(dna=1),
          k_unbind_lesion)
 
-    Rule("Ligase_binds_lesion",
-         Ligase(dna=None) +  Lesion(ner=1, fanc=4) % FANCD2(dna=4) % Pol_Zeta(dna=1) >>
-         Ligase(dna=1) % Lesion(ner=1, fanc=4) % FANCD2(dna=4) + Pol_Zeta(dna=None),
-         k_Ligase_lesion)
+    Rule("LIG1_binds_lesion",
+         LIG1(dna=None) +  Lesion(ner=1, fanc=4) % FANCD2(dna=4) % Pol_Zeta(dna=1) >>
+         LIG1(dna=1) % Lesion(ner=1, fanc=4) % FANCD2(dna=4) + Pol_Zeta(dna=None),
+         k_LIG1_lesion)
 
-    Rule('Ligase_unbinds_Lesion_fanc_unbound',
-         Ligase(dna=1) % Lesion(ner=1, fanc=None) >> Ligase(dna=None) + Lesion(ner=None, fanc=None),
+    Rule('LIG1_unbinds_Lesion_fanc_unbound',
+         LIG1(dna=1) % Lesion(ner=1, fanc=None) >> LIG1(dna=None) + Lesion(ner=None, fanc=None),
          k_unbind_lesion)
 
-    Rule('Ligase_unbinds_Lesion_FANCM',
-         Ligase(dna=1) % Lesion(ner=1, fanc=2) % FANCM(dna=2) >>
-         Ligase(dna=None) + Lesion(ner=None, fanc=2) % FANCM(dna=2),
+    Rule('LIG1_unbinds_Lesion_FANCM',
+         LIG1(dna=1) % Lesion(ner=1, fanc=2) % FANCM(dna=2) >>
+         LIG1(dna=None) + Lesion(ner=None, fanc=2) % FANCM(dna=2),
          k_unbind_lesion)
 
-    Rule("Ligase_Repairs_Lesion",
-         Ligase(dna=1) % Lesion(ner=1, fanc=2) % FANCD2(dna=2) >> Ligase(dna=None) + FANCD2(dna=None),
-         k_ligase_repairs_lesion)
+    Rule("LIG1_Repairs_Lesion",
+         LIG1(dna=1) % Lesion(ner=1, fanc=2) % FANCD2(dna=2) >> LIG1(dna=None) + FANCD2(dna=None),
+         k_LIG1_repairs_lesion)
+
+    if define_observables:
+        Observable("Pol_Zeta_Lesion", Pol_Zeta(dna=1) % Lesion(ner=1))
+        Observable("LIG1_lesion", LIG1(dna=1) % Lesion(ner=1))
 
 
 if __name__ == "__main__":
@@ -155,20 +159,19 @@ if __name__ == "__main__":
     Model()
 
     Monomer('Lesion', ['fanc', 'ner'])
-    Monomer("Pol_Zeta", ["dna"])
-    Monomer("Ligase", ["dna"])
-
     Parameter("Lesion_0", 100)
-    Parameter("Pol_Zeta_0", 100)
-    Parameter("Ligase_0", 100)
-
     Initial(Lesion(fanc=None, ner=None), Lesion_0)
-    Initial(Pol_Zeta(dna=None), Pol_Zeta_0)
-    Initial(Ligase(dna=None), Ligase_0)
-
     Observable("Lesion_tot", Lesion())
-    Observable("Pol_Zeta_Lesion", Pol_Zeta(dna=ANY))
-    Observable("Ligase_lesion", Ligase(dna=ANY))
+
+    Monomer("Pol_Zeta", ["dna"])
+    Parameter("Pol_Zeta_0", 100)
+    Initial(Pol_Zeta(dna=None), Pol_Zeta_0)
+    Observable("Pol_Zeta_free", Pol_Zeta(dna=None))
+
+    Monomer("LIG1", ["dna"])
+    Parameter("LIG1_0", 100)
+    Initial(LIG1(dna=None), LIG1_0)
+    Observable("LIG1_free", LIG1(dna=None))
 
     # FANCQ binds to ERCC1
     Monomer("FANCQ", ["ercc1", 'b'])
@@ -201,18 +204,20 @@ if __name__ == "__main__":
          FANCD2(dna=None) + Lesion(fanc=1) % FANCM(dna=1) | FANCD2(dna=1) % Lesion(fanc=1) + FANCM(dna=None),
          kf_FANCD2_Lesion, kr_FANCD2_Lesion)
 
-    create_ner_model_elements()
+    create_model_elements()
 
     tspan = np.linspace(0,100,101)
     sim = ScipyOdeSimulator(model,tspan,verbose=True)
     output = sim.run()
 
+    plt.figure(constrained_layout=True)
     for obs in model.observables:
         plt.plot(tspan, output.observables[obs.name], lw=2, label=obs.name)
-    plt.xlabel("time")
-    plt.ylabel("concentration")
-    plt.legend(loc=0)
-    plt.tight_layout()
+    plt.xlabel("time", fontsize=16)
+    plt.ylabel("concentration", fontsize=16)
+    plt.tick_params(labelsize=14)
+    plt.legend(loc='best', frameon=False, fontsize=14)
+
     plt.show()
 
 

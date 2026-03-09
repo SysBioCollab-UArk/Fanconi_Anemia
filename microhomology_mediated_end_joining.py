@@ -52,17 +52,17 @@ def create_model_elements(define_observables=True):
     # Steps G-I
     Observable('MRE11_RAD50', MRE11(rad50=1, parp1_nbs1=None) % RAD50(mre11=1))
     # Observable("MRN", MRE11(rad50=1, parp1_nbs1=2) % RAD50(mre11=1) % NBS1(mre11=2))
-    Observable('MRN_free', MRN(dsb=None))
+    # Observable('MRN_free', MRN(dsb=None))
     alias_model_components()
     Expression("MRE11_no_NBS1", MRE11_tot - MRN_free)
 
-    Observable("DSB_tot", DSB())
+    # Observable("DSB_tot", DSB())
     Observable("POLQ_bound_DSB", PolQ(dsb=1) % DSB(b=1))
     Observable("POLQ_bound_DSB_full", PolQ(dsb=1, parp1=2) % DSB(b=1) % Parp1(dsb=2, ctip_mre11=ANY))
     Observable("LIG3_bound_DSB", LIG3(dsb=1) % DSB(b=1))
     # Observable('LIG3_bound_DSB_twoBonds', LIG3(dsb=MultiState(1,2)) % DSB(b=MultiState(1, 2)))  # TODO
 
-    Parameter("DSB_0", 100)
+    # Parameter("DSB_0", 100)
     Parameter("Parp1_0", 1000)
     Parameter("CtIP_0", 1000)
     Parameter("MRE11_0", 1000)
@@ -74,7 +74,7 @@ def create_model_elements(define_observables=True):
 
     alias_model_components()
 
-    Initial(DSB(b=MultiState(None, None)), DSB_0)
+    # Initial(DSB(b=MultiState(None, None)), DSB_0)
     Initial(Parp1(dsb=None, ctip_mre11=None), Parp1_0)
     Initial(CtIP(parp1=None), CtIP_0)
     Initial(MRE11(rad50=None, parp1_nbs1=None), MRE11_0)
@@ -85,8 +85,8 @@ def create_model_elements(define_observables=True):
     Initial(LIG3(dsb=MultiState(None, None)), LIG3_0)
 
     # STEP 0: Two-step binding process to form MRN from MRE11, RAD50, and NBS1:
-    #    MRE11 is involved in MMEJ, MRN is involved in HR;. Decision between pathways depends on relative amount of
-    #    MRE11 vs. MRN
+    #    MRE11 is involved in MMEJ, MRN is involved in HR.
+    #    Decision between pathways depends on relative amount of MRE11 vs. MRN
     Parameter("kf_mre11_binds_rad50", 1)
     Parameter("kr_mre11_binds_rad50",1000)
     alias_model_components()
@@ -234,12 +234,22 @@ if __name__ == '__main__':
     import numpy as np
     import matplotlib.pyplot as plt
     from mpl_toolkits.axes_grid1.inset_locator import inset_axes, mark_inset
+    from matplotlib.ticker import FuncFormatter
 
     Model()
 
-    Monomer("DSB", ["b", "b"])  # defined in fanconi_anemia_core_pathway.py
+    Monomer("DSB", ["b", "b"])  # defined in fanconi_anemia_core_pathway.py  # TODO
+    Parameter("DSB_0", 100)
+    Initial(DSB(b=MultiState(None, None)), DSB_0)  # TODO
+    Observable("DSB_tot", DSB())
+
     Monomer("RPA", ["dsb", "parp1"])  # defined in homologous_recombination.py
+    # ... TODO
+
     Monomer("MRN", ["dsb"])  # defined in homologous_recombination.py
+    Parameter("MRN_0", 100)
+    Initial(MRN(dsb=None), MRN_0)
+    Observable("MRN_free", MRN(dsb=None))
 
     create_model_elements(define_observables=True)
 
@@ -274,10 +284,11 @@ if __name__ == '__main__':
     plt.figure(constrained_layout=True)
     for obs in [Parp_tot, Parp_free]:
          plt.plot(tspan,output.observables[obs.name],lw=2,label=obs.name)
-    plt.xlabel("time")
-    plt.ylabel("concentration")
+    plt.xlabel("time", fontsize=16)
+    plt.ylabel("concentration", fontsize=16)
     # plt.xlim(left=-0.001, right=0.025)
-    plt.legend(loc="best")
+    plt.tick_params(labelsize=14)
+    plt.legend(loc="best", frameon=False, fontsize=14)
     '''
     plt.figure(constrained_layout=True)
     for obs in [Parp_bound_DSB_STEP1, Parp_DSB_Parp, Parp_bound_CtIP, Parp_bound_MRE11]:
@@ -298,10 +309,11 @@ if __name__ == '__main__':
     plt.figure(constrained_layout=True)
     for obs in [MRE11_no_NBS1, MRN_free]:
          plt.plot(tspan,output.all[obs.name],lw=2,label=obs.name)
-    plt.xlabel("time")
-    plt.ylabel("concentration")
+    plt.xlabel("time", fontsize=16)
+    plt.ylabel("concentration", fontsize=16)
     #plt.xlim(left=-0.001, right=0.025)
-    plt.legend(loc="best")
+    plt.tick_params(labelsize=14)
+    plt.legend(loc="best", frameon=False, fontsize=14)
 
     # TODO: Review the plots below
     '''
@@ -341,18 +353,24 @@ if __name__ == '__main__':
     for obs in obs_list:
         ax.plot(tspan, output.observables[obs.name], lw=2, label=obs.name)
 
-    ax.set_xlabel("time")
-    ax.set_ylabel("concentration")
-    ax.set_title("PARP Binding Steps with Early Time Inset")
-    ax.legend(loc="best")
+    # ax.set_title("PARP Binding Steps with Early Time Inset", fontsize=16)
+    ax.set_xlabel("time", fontsize=16)
+    ax.set_ylabel("concentration", fontsize=16)
+    ax.tick_params(labelsize=14)
+    leg = ax.legend(loc="lower right", frameon=True, edgecolor='none', fontsize=14, facecolor='white', framealpha=1,
+                    bbox_to_anchor=(1, 0.05))
+    leg.set_zorder(100)
 
     # Inset axes
-    axins = inset_axes(ax, width="40%", height="30%", loc='upper right')
+    axins = inset_axes(ax, width="50%", height="40%", loc='upper right', bbox_to_anchor=(-0.05, 0, 1, 1),
+                       bbox_transform=ax.transAxes)
 
     # Slice tspan and observables for early time (0-0.025)
     idx_short = np.searchsorted(tspan, 0.025)
     for obs in obs_list:
         axins.plot(tspan[:idx_short], output.observables[obs.name][:idx_short], lw=2)
+    axins.tick_params(labelsize=12)
+    axins.xaxis.set_major_formatter(FuncFormatter(lambda x, pos: f'{x:g}'))
 
     # Set limits of inset
     axins.set_xlim(0, 0.025)
@@ -361,7 +379,7 @@ if __name__ == '__main__':
     axins.set_ylim(ymin, ymax)
 
     # Optional: draw rectangle on main plot to show inset area
-    mark_inset(ax, axins, loc1=2, loc2=4, fc="none", ec="0.5")
+    mark_inset(ax, axins, loc1=2, loc2=3, fc="none", ec="0.5")
 
     for sp in model.species:
          print(sp)

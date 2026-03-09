@@ -1,36 +1,76 @@
 from pysb import *
-from fanconi_anemia_core_pathway import create_model_elements as create_FACore_ME
-from homologous_recombination import create_model_elements as create_HR_ME
-from nucleotide_excision_repair import create_model_elements as create_NER_ME
-from microhomology_mediated_end_joining import create_model_elements as create_MMEJ_ME
+
+include_FACore = True
+include_HR = True
+include_NER = True
+include_MMEJ = False
+
+if include_FACore:
+    from fanconi_anemia_core_pathway import create_model_elements as create_FACore_ME
+if include_HR:
+    from homologous_recombination import create_model_elements as create_HR_ME
+if include_NER:
+    from nucleotide_excision_repair import create_model_elements as create_NER_ME
+if include_MMEJ:
+    from microhomology_mediated_end_joining import create_model_elements as create_MMEJ_ME
 
 DEFINE_OBSERVABLES = True
 
 Model()
 
-# FA core pathway model elements
-create_FACore_ME(define_observables=DEFINE_OBSERVABLES)
+# shared Monomers
+if include_MMEJ:
+    raise Exception('MMEJ pathway not yet available')
 
-Monomer("Pol_Zeta", ["dna"])  # DNA polymerase zeta
-Monomer("Ligase", ["dna"])  # DNA ligase
-Parameter("Pol_Zeta_0", 100)
-Parameter("Ligase_0", 100)
-Initial(Pol_Zeta(dna=None), Pol_Zeta_0)
-Initial(Ligase(dna=None), Ligase_0)
-if DEFINE_OBSERVABLES:
-    Observable("Pol_Zeta_DSB", Pol_Zeta(dna=1) % DSB(b=1))
-    Observable("Ligase_DSB", Ligase(dna=1) % DSB(b=1))
-    Observable("Pol_Zeta_Lesion", Pol_Zeta(dna=1) % Lesion(ner=1))
-    Observable("Ligase_lesion", Ligase(dna=1) % Lesion(ner=1))
+if include_FACore or include_HR or include_MMEJ:
+    Monomer('DSB', ['b'])  # fanconi_anemia_pathway.py
+    # Monomer('DSB', ['b'])  # homologous_recombination.py
+    # Monomer("DSB", ["b", "b"])  # microhomology_mediated_end_joining.py  # TODO
+    Parameter('DSB_0', 0)
+    Initial(DSB(b=None), DSB_0)
+    Observable('Double_strand_breaks', DSB())
 
-# Homologous recombination model elements
-# create_HR_ME(define_observables=DEFINE_OBSERVABLES)
+if include_FACore or include_NER:
+    Monomer('Lesion', ['fanc', 'ner'])  # fanconi_anemia_pathway.py
+    # Monomer('Lesion', ['fanc', 'ner'])  # nucleotide_excision_repair.py
+    Parameter('Lesion_0', 0)
+    Initial(Lesion(fanc=None, ner=None), Lesion_0)
+    Observable('DNA_lesions', Lesion())
 
-# Nucleotide excision repair model elements
-create_NER_ME(define_observables=DEFINE_OBSERVABLES)
+if include_HR or include_NER:
+    Monomer("Pol_Zeta", ["dna"])  # homologous_recombination.py
+    # Monomer("Pol_Zeta", ["dna"])  # nucleotide_excision_repair.py
+    Parameter("Pol_Zeta_0", 100)
+    Initial(Pol_Zeta(dna=None), Pol_Zeta_0)
+    Observable("Pol_Zeta_free", Pol_Zeta(dna=None))
 
-# Microhomology-mediated end joining model elements
-# create_MMEJ_ME(define_observables=DEFINE_OBSERVABLES)
+    Monomer("LIG1", ["dna"])  # homologous_recombination.py
+    # Monomer("LIG1", ["dna"])  # nucleotide_excision_repair.py
+    Parameter("LIG1_0", 100)
+    Initial(LIG1(dna=None), LIG1_0)
+    Observable("LIG1_free", LIG1(dna=None))
+
+if include_HR or include_MMEJ:
+    Monomer("RPA", ["dsb"])  # homologous_recombination.py
+    # Monomer("RPA", ["dsb", "parp1"])  # microhomology_mediated_end_joining.py  # TODO
+    Parameter("RPA_0", 100)
+    Initial(RPA(dsb=None), RPA_0)
+    Observable("RPA_free", RPA(dsb=None))
+
+    Monomer("MRN", ["dsb"])  # homologous_recombination.py
+    # Monomer("MRN", ["dsb"]) # microhomology_mediated_end_joining.py
+    Parameter("MRN_0", 100)
+    Initial(MRN(dsb=None), MRN_0)
+    Observable("MRN_free", MRN(dsb=None))
+
+if include_FACore:
+    create_FACore_ME(define_observables=DEFINE_OBSERVABLES)
+if include_HR:
+    create_HR_ME(define_observables=DEFINE_OBSERVABLES)
+if include_NER:
+    create_NER_ME(define_observables=DEFINE_OBSERVABLES)
+if include_MMEJ:
+    create_MMEJ_ME(define_observables=DEFINE_OBSERVABLES)
 
 
 if __name__ == '__main__':

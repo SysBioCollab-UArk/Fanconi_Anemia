@@ -7,19 +7,19 @@ def create_model_elements(define_observables=True):
     # Shared components
 
     Monomer('ICL', ['b'])  # interstrand crosslinks
-    Monomer('DSB', ['b'])  # double strand breaks
-    Monomer('Lesion', ['fanc', 'ner'])  # DNA lesions
+    # Monomer('DSB', ['b'])  # double strand breaks
+    # Monomer('Lesion', ['fanc', 'ner'])  # DNA lesions
 
 
     Parameter("ICL_0", 0)
-    Parameter('DSB_0', 0)
-    Parameter('Lesion_0', 0)
+    # Parameter('DSB_0', 0)
+    # Parameter('Lesion_0', 0)
 
     alias_model_components()
 
     Initial(ICL(b=None), ICL_0)
-    Initial(DSB(b=None), DSB_0)
-    Initial(Lesion(fanc=None, ner=None), Lesion_0)
+    # Initial(DSB(b=None), DSB_0)
+    # Initial(Lesion(fanc=None, ner=None), Lesion_0)
 
     # ICL synthesis rule
     Parameter("k_ICL_synth", 0)
@@ -489,11 +489,11 @@ def create_model_elements(define_observables=True):
          FANCQ(b=1) % FANCP(fanci=ANY, fancd2=2, fancq=1) % FANCD2(fancp=2, dna=None) + DSB(b=None) +
          Lesion(ner=None, fanc=None),
          k_unhook)
-    if define_observables:
-        Observable('Double_strand_breaks', DSB())
+    # if define_observables:
+    #     Observable('Double_strand_breaks', DSB())
     # TODO: Define ICLs and Lesions in all cases
     Observable('Interstrand_crosslinks', ICL())
-    Observable('DNA_lesions', Lesion())
+    # Observable('DNA_lesions', Lesion())
 
     # additional Observables for debugging
     # TODO: Probably want to remove these
@@ -508,6 +508,20 @@ if __name__ == '__main__':
     import numpy as np
     import matplotlib.pyplot as plt
 
+    Model()
+
+    Monomer('DSB', ['b'])  # double strand breaks
+    Parameter('DSB_0', 0)
+    Initial(DSB(b=None), DSB_0)
+    Observable('Double_strand_breaks', DSB())
+
+    Monomer('Lesion', ['fanc', 'ner'])  # DNA lesions
+    Parameter('Lesion_0', 0)
+    Initial(Lesion(fanc=None, ner=None), Lesion_0)
+    Observable('DNA_lesions', Lesion())
+
+    create_model_elements(define_observables=True)
+
     ICL_0.value = 100
 
     # simulation commands
@@ -517,33 +531,25 @@ if __name__ == '__main__':
 
     complexes = []  #'AG20_total', 'BL100_total', 'CEF_total', 'FAcpx_free', 'FAcpx_ID2ub', 'FANCQ_FANCP_ID2Ub']
 
-    mutations = ['Interstrand_crosslinks', 'DNA_lesions']  #'Double_strand_breaks',  , 'Pol_Zeta_DSB', 'Ligase_DSB',
-                 # 'Pol_Zeta_Lesion', 'Ligase_lesion']
+    mutations = ['Interstrand_crosslinks', 'DNA_lesions']  #'Double_strand_breaks',  , 'Pol_Zeta_DSB', 'LIG1_DSB',
+                 # 'Pol_Zeta_Lesion', 'LIG1_lesion']
 
-    plt.figure('complexes')
-    plt.figure('mutations')
+    figs = []
     for obs in complexes + mutations:
         if obs in mutations:
-            plt.figure('mutations')
+            fig = plt.figure('mutations', constrained_layout=True)
         elif obs in complexes:
-            plt.figure('complexes')
+            fig = plt.figure('complexes', constrained_layout=True)
+        if fig not in figs:
+            figs.append(fig)
         plt.plot(tspan, result.observables[obs], lw=2, label=obs)
 
-    plt.figure('complexes')
-    plt.xlabel('time (arbitrary units)', fontsize=16)
-    plt.ylabel('# of molecules', fontsize=16)
-    plt.xticks(fontsize=14)
-    plt.yticks(fontsize=14)
-    plt.legend(loc="best", ncol=2, fontsize=14)
-    plt.tight_layout()
-
-    plt.figure('mutations')
-    plt.xlabel('time (arbitrary units)', fontsize=16)
-    plt.ylabel('# of molecules', fontsize=16)
-    plt.xticks(fontsize=14)
-    plt.yticks(fontsize=14)
-    plt.legend(loc="best", fontsize=14)
-    plt.tight_layout()
+    for fig in figs:
+        ax = fig.gca()
+        ax.set_xlabel('time (arbitrary units)', fontsize=16)
+        ax.set_ylabel('# of molecules', fontsize=16)
+        ax.tick_params(labelsize=14)
+        ax.legend(loc="best", frameon=False, fontsize=14)
 
     # plt.figure()
     # obs2plot=["DNA_lesions", "FANCM_lesion", 'FANCM_tot', 'FANCM_free', "Lesion_free", "Lesion_ner_ANY_fanc_None",
