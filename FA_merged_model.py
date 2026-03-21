@@ -3,7 +3,7 @@ from pysb import *
 include_FACore = True
 include_HR = True
 include_NER = True
-include_MMEJ = False
+include_MMEJ = True
 
 if include_FACore:
     from fanconi_anemia_core_pathway import create_model_elements as create_FACore_ME
@@ -18,47 +18,37 @@ DEFINE_OBSERVABLES = True
 
 Model()
 
-if include_MMEJ:
-    raise Exception('MMEJ pathway not yet available')
-
 # shared model elements
 if include_FACore or include_HR or include_MMEJ:
-    Monomer('DSB', ['b'])  # fanconi_anemia_pathway.py
-    # Monomer('DSB', ['b'])  # homologous_recombination.py
-    # Monomer("DSB", ["b", "b"])  # microhomology_mediated_end_joining.py  # TODO
+    Monomer('DSB', ['b'])
     Parameter('DSB_0', 0)
     Initial(DSB(b=None), DSB_0)
     Observable('Double_strand_breaks', DSB())
 
 if include_FACore or include_NER:
-    Monomer('Lesion', ['fanc', 'ner'])  # fanconi_anemia_pathway.py
-    # Monomer('Lesion', ['fanc', 'ner'])  # nucleotide_excision_repair.py
+    Monomer('Lesion', ['fanc', 'ner'])
     Parameter('Lesion_0', 0)
     Initial(Lesion(fanc=None, ner=None), Lesion_0)
     Observable('DNA_lesions', Lesion())
 
 if include_HR or include_NER:
-    Monomer("Pol_Zeta", ["dna"])  # homologous_recombination.py
-    # Monomer("Pol_Zeta", ["dna"])  # nucleotide_excision_repair.py
+    Monomer("Pol_Zeta", ["dna"])
     Parameter("Pol_Zeta_0", 100)
     Initial(Pol_Zeta(dna=None), Pol_Zeta_0)
     Observable("Pol_Zeta_free", Pol_Zeta(dna=None))
 
-    Monomer("LIG1", ["dna"])  # homologous_recombination.py
-    # Monomer("LIG1", ["dna"])  # nucleotide_excision_repair.py
+    Monomer("LIG1", ["dna"])
     Parameter("LIG1_0", 100)
     Initial(LIG1(dna=None), LIG1_0)
     Observable("LIG1_free", LIG1(dna=None))
 
 if include_HR or include_MMEJ:
-    Monomer("RPA", ["dsb"])  # homologous_recombination.py
-    # Monomer("RPA", ["dsb", "parp1"])  # microhomology_mediated_end_joining.py  # TODO
+    Monomer("RPA", ["dsb"])
     Parameter("RPA_0", 100)
     Initial(RPA(dsb=None), RPA_0)
     Observable("RPA_free", RPA(dsb=None))
 
-    Monomer("MRN", ["dsb"])  # homologous_recombination.py
-    # Monomer("MRN", ["dsb"]) # microhomology_mediated_end_joining.py
+    Monomer("MRN", ["dsb"])
     Parameter("MRN_0", 100)
     Initial(MRN(dsb=None), MRN_0)
     Observable("MRN_free", MRN(dsb=None))
@@ -87,14 +77,16 @@ if __name__ == '__main__':
     ICL_0.value = 1.9
 
     # simulation commands
-    tspan = np.linspace(0, 250, 251)
+    tspan = np.linspace(0, 25, 251)
     sim = ScipyOdeSimulator(model, tspan, verbose=True)
     result = sim.run()
 
     plt.figure(constrained_layout=True)
-    plt.plot(tspan, result.observables['Interstrand_crosslinks'], lw=2, label='ICLs')
+    plt.plot(tspan, result.observables['Interstrand_crosslinks'], lw=2, label='ICL')
+    plt.plot(tspan, result.observables['Double_strand_breaks'], lw=2, label='DSB')
+    plt.plot(tspan, result.observables['DNA_lesions'], lw=2, label='MA')
     plt.xlabel('time (min)')
-    plt.ylabel('concentration (ng/ul')
+    plt.ylabel(r'concentration (ng/$\mu$l')
     plt.legend(loc='best')
 
     plt.show()
