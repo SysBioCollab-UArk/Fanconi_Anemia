@@ -29,14 +29,16 @@ def create_model_elements(define_observables=True):
     alias_model_components()
 
     # Steps A-C
-    Observable('Parp_tot', Parp1())
+    Observable('Parp_monomer', Parp1())
+    Observable('Parp_dimer', Parp1_dimer())
+    Expression('Parp_tot', Parp_monomer + 2 * Parp_dimer)
     Observable("Parp_free", Parp1(dsb=None))
     Observable("Parp_bound_DSB_STEP1", Parp1(dsb=1) % DSB(b=1))
-    Observable("Parp_DSB_Parp", Parp1_dimer(dsb=1) % DSB(b=1))
+    Observable("Parp_DSB_Parp", Parp1_dimer(dsb=1, rpa_polq=MultiState(None, None)) % DSB(b=1))
     Observable("Parp_bound_CtIP", Parp1_dimer(ctip=1) % CtIP(parp1=1))
     Observable("Parp_bound_MRE11", Parp1_dimer(mre11=1) % MRE11(parp1_nbs1=1))
     Observable("CtIP_free", CtIP(parp1=None))
-    Observable('MRE11_tot', MRE11())
+    Observable('MRE11_tot', MRE11() + MRN())
     Observable('MRE11_Parp1_RPA',
                MRE11(parp1_nbs1=1) % Parp1_dimer(mre11=1, rpa_polq=2) % RPA(dsb=2), match='species')
     Observable('MRE11_Parp1_PolQ',
@@ -63,7 +65,7 @@ def create_model_elements(define_observables=True):
     Parameter("CtIP_0", 1000)
     Parameter("MRE11_0", 1000)
     Parameter("RAD50_0", 1000)
-    Parameter("NBS1_0", 1000)
+    Parameter("NBS1_0", 500)
     Parameter("PolQ_0", 1000)
     Parameter("LIG3_0", 1000)
 
@@ -92,7 +94,7 @@ def create_model_elements(define_observables=True):
          kf_mre11_binds_rad50, kr_mre11_binds_rad50)
 
     Parameter("kf_nbs1_binds_mre11_rad50", 1)
-    Parameter("kr_nbs1_binds_mre11_rad50", 10)
+    Parameter("kr_nbs1_binds_mre11_rad50", 100)
     alias_model_components()
     Rule("NBS1_binds_MRE11_RAD50",
          MRE11(rad50=1, parp1_nbs1=None) % RAD50(mre11=1) + NBS1(mre11=None) | MRN(dsb=None),
@@ -218,7 +220,7 @@ if __name__ == '__main__':
 
     create_model_elements(define_observables=True)
 
-    tspan=np.linspace(0,10, int(1e5)+1)
+    tspan=np.linspace(0,2, int(1e5)+1)
     sim=ScipyOdeSimulator(model, tspan=tspan, verbose=True)
     output=sim.run()
 
@@ -243,7 +245,7 @@ if __name__ == '__main__':
     # Steps A-C
     plt.figure(constrained_layout=True)
     for obs in [Parp_tot, Parp_free]:
-         plt.plot(tspan,output.observables[obs.name],lw=2,label=obs.name)
+         plt.plot(tspan, output.all[obs.name],lw=2,label=obs.name)
     plt.xlabel("time", fontsize=16)
     plt.ylabel("concentration", fontsize=16)
     # plt.xlim(left=-0.001, right=0.025)
@@ -267,11 +269,12 @@ if __name__ == '__main__':
     plt.legend(loc="best")
     '''
     plt.figure(constrained_layout=True)
-    for obs in [MRE11_no_NBS1, MRN_free]:
+    for obs in [MRE11_tot, MRE11_no_NBS1, MRN_free]:
          plt.plot(tspan,output.all[obs.name],lw=2,label=obs.name)
     plt.xlabel("time", fontsize=16)
     plt.ylabel("concentration", fontsize=16)
     #plt.xlim(left=-0.001, right=0.025)
+    plt.ylim(bottom=0, top=1200)
     plt.tick_params(labelsize=14)
     plt.legend(loc="best", frameon=False, fontsize=14)
 
@@ -311,7 +314,7 @@ if __name__ == '__main__':
     fig, ax = plt.subplots(constrained_layout=True)
 
     for obs in obs_list:
-        ax.plot(tspan, output.observables[obs.name], lw=2, label=obs.name)
+        ax.plot(tspan, output.all[obs.name], lw=2, label=obs.name)
 
     # ax.set_title("PARP Binding Steps with Early Time Inset", fontsize=16)
     ax.set_xlabel("time", fontsize=16)
@@ -328,14 +331,14 @@ if __name__ == '__main__':
     # Slice tspan and observables for early time (0-0.025)
     idx_short = np.searchsorted(tspan, 0.025)
     for obs in obs_list:
-        axins.plot(tspan[:idx_short], output.observables[obs.name][:idx_short], lw=2)
+        axins.plot(tspan[:idx_short], output.all[obs.name][:idx_short], lw=2)
     axins.tick_params(labelsize=12)
     axins.xaxis.set_major_formatter(FuncFormatter(lambda x, pos: f'{x:g}'))
 
     # Set limits of inset
     axins.set_xlim(0, 0.025)
-    ymin = min([min(output.observables[obs.name][:idx_short]) for obs in obs_list])
-    ymax = max([max(output.observables[obs.name][:idx_short]) for obs in obs_list])
+    ymin = min([min(output.all[obs.name][:idx_short]) for obs in obs_list])
+    ymax = max([max(output.all[obs.name][:idx_short]) for obs in obs_list])
     axins.set_ylim(ymin, ymax)
 
     # Optional: draw rectangle on main plot to show inset area
