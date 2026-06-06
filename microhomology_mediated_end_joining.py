@@ -31,6 +31,7 @@ def create_model_elements(define_observables=True):
     # Steps A-C
     Observable('Parp_monomer', Parp1())
     Observable('Parp_dimer', Parp1_dimer())
+    alias_model_components()
     Expression('Parp_tot', Parp_monomer + 2 * Parp_dimer)
     Observable("Parp_free", Parp1(dsb=None))
     Observable("Parp_bound_DSB_STEP1", Parp1(dsb=1) % DSB(b=1))
