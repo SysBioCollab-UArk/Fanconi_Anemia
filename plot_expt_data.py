@@ -122,6 +122,8 @@ if __name__ == '__main__':
     plot_expt_data([datafile_Normal, datafile_FA150], obs_same_plot=False , label_dict=label_dict)
     '''
 
+    # Alcon et al. (2004), Fig. 6B
+    # 2 ng/ul ICL at Time = 0
     plot_expt_data(os.path.join('DATA', 'Alcon2024_Fig6B.csv'), obs_same_plot=False)
 
     plt.show()

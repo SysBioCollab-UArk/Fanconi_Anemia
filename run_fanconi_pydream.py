@@ -1,8 +1,14 @@
-from fanconi_anemia import model
+from FA_merged_model import model
 from param_calibration import *
 from SIM_PROTOCOLS.sim_protocols import *
 from pysb.simulator import ScipyOdeSimulator
 import os
+
+# TODO: The Averbeck et al. (1998) paper has data for both ICLs and MAs. Therefore, we should include only the FA_Core
+#  and NER pathways in the model when running PyDREAM
+# TODO: The Alcon et al. (2024) paper only has data for ICLs. So, we should only include the FA_Core pathway in the
+#  model when running PyDREAM
+# TODO: Need to find some data on DSB repair to parameterize the HR (and MMEJ) pathways
 
 # Below are reasonable starting guesses for initial concentrations of key FA pathway proteins, assuming a
 # nuclear volume of ~300 fL for a human epithelial cell:
