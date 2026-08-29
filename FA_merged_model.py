@@ -2,8 +2,11 @@ from pysb import *
 
 # TODO: Refit the model to the Averbeck et al. (1998) data with only the FA Core and NER pathways active
 # TODO: Fit the model to the Alcon et al. (2024) data with only the FA Core pathway active
+# TODO: We can then try integrating the Averbeck and Alcon datasets and fitting the FA Core and NER pathways to them
+#  together
 # TODO: The Bee et al. (2013) paper has data related to HR/NHEJ repair of DSBs. Look into this more to see if we can use
 #  this data to fit the HR pathway model.
+# TODO: We'll need to implement a cNHEJ module to use the DSB data we have
 
 # Averbeck et al. (1998): Normal and FA-deficient human skin fibroblasts
 # Alcon et al. (2024): Xenopus egg extracts
