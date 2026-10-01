@@ -147,7 +147,7 @@ def create_model_elements(define_observables=True):
          CtIP(parp1=2) % DSB(b=1) % Parp1_dimer(dsb=1, ctip=2, mre11=None, rpa_polq=None) |
          MRE11(rad50=ANY, parp1_nbs1=3) %
          CtIP(parp1=2) % DSB(b=1) % Parp1_dimer(dsb=1, ctip=2, mre11=3, rpa_polq=None),
-         kf_mre11_Parp1, kr_mre11_Parp1)
+         kf_mre11_rad50_Parp1, kr_mre11_rad50_Parp1)
 
     # STEP 4a: RPA displaces Parp1 % CtIP
     Parameter("k_RPA_binds_Parp1_DSB", 1)
@@ -226,7 +226,7 @@ if __name__ == '__main__':
     output=sim.run()
 
     print(model.observables)
-    '''
+
     # DSB Plot
     plt.figure(constrained_layout=True)
     for obs in [DSB_tot, DSB_free]:
@@ -234,7 +234,8 @@ if __name__ == '__main__':
     plt.xlabel("time")
     plt.ylabel("concentration")
     plt.legend(loc="best")
-    
+
+    '''
     # MRE11 vs. MRN
     plt.figure(constrained_layout=True)
     for obs in [MRE11_tot, MRE11_free, MRE11_Parp1_DSB, MRE11_Parp1_RPA, MRE11_Parp1_PolQ, MRE11_RAD50, MRN]:
@@ -242,7 +243,7 @@ if __name__ == '__main__':
     plt.xlabel("time")
     plt.ylabel("concentration")
     plt.legend(loc=(0.6, 0.6))
-    '''
+'''
     # Steps A-C
     plt.figure(constrained_layout=True)
     for obs in [Parp_tot, Parp_free]:
@@ -252,7 +253,7 @@ if __name__ == '__main__':
     # plt.xlim(left=-0.001, right=0.025)
     plt.tick_params(labelsize=14)
     plt.legend(loc="best", frameon=False, fontsize=14)
-    '''
+
     plt.figure(constrained_layout=True)
     for obs in [Parp_bound_DSB_STEP1, Parp_DSB_Parp, Parp_bound_CtIP, Parp_bound_MRE11]:
          plt.plot(tspan,output.observables[obs.name],lw=2,label=obs.name)
@@ -268,7 +269,7 @@ if __name__ == '__main__':
     plt.ylabel("concentration")
     plt.xlim(left=-0.001, right=0.025)
     plt.legend(loc="best")
-    '''
+
     plt.figure(constrained_layout=True)
     for obs in [MRE11_tot, MRE11_no_NBS1, MRN_free]:
          plt.plot(tspan,output.all[obs.name],lw=2,label=obs.name)
@@ -280,7 +281,7 @@ if __name__ == '__main__':
     plt.legend(loc="best", frameon=False, fontsize=14)
 
     # TODO: Review the plots below
-    '''
+
     # Not specific steps, just free parp1, ctip, and mre11
     plt.figure(constrained_layout=True)
     for obs in [Parp_free, CtIP_free, MRE11_free]:
@@ -306,7 +307,7 @@ if __name__ == '__main__':
     plt.ylabel("concentration")
     # plt.xlim(left=-0.0005, right=0.08)
     plt.legend(loc="best")
-    '''
+
 
     # Observables of interest
     obs_list = [Parp_bound_DSB_STEP1, Parp_DSB_Parp, Parp_bound_CtIP, Parp_bound_MRE11]
