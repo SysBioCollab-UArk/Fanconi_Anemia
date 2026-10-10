@@ -56,46 +56,32 @@ def create_model_elements(define_observables=True):
     #   damaged      -> Artemis-dependent processing is required
     #   ready         -> ends are ligation-ready
     #   gap           -> synthesis is still required before ligation
-    Monomer(
-        "Ku70_80_pair",
-        ["dsb", "dnapk1", "dnapk2", "xrcc4", "pol", "stage", "end_state"],
-        {
-            "stage": ["assembling", "long_range", "short_range"],
-            "end_state": ["unclassified", "compatible", "damaged", "ready", "gap"],
-        },
-    )
+    Monomer("Ku70_80_pair",["dsb", "dnapk1", "dnapk2", "xrcc4", "pol", "stage", "end_state"],
+            {"stage": ["assembling", "long_range", "short_range"],
+             "end_state": ["unclassified", "compatible", "damaged", "ready", "gap"]})
 
-    # DNA-PK catalytic subunit. "state" lumps the activation/
-    # autophosphorylation transition that promotes end accessibility and
-    # eventual DNA-PKcs release.
-    Monomer(
-        "DNA_PKcs",
-        ["ku_pair", "artemis", "state"],
-        {"state": ["inactive", "active"]},
-    )
+    # DNA-PK catalytic subunit. "state" lumps the activation/autophosphorylation transition that promotes end
+    # accessibility and eventual DNA-PKcs release.
+    Monomer("DNA_PKcs", ["ku_pair", "artemis", "state"], {"state": ["inactive", "active"]})
 
     Monomer("Artemis", ["dnapk"])
 
-    # Alternative cNHEJ polymerases. They compete for the same pol site on
-    # the short-range Ku pair and are NOT forced to act sequentially.
+    # Alternative cNHEJ polymerases. They compete for the same pol site on the short-range Ku pair and are NOT forced to
+    # act sequentially.
     Monomer("PolMu", ["ku_pair"])
     Monomer("PolLambda", ["ku_pair"])
 
-    # Ligation machinery. XRCC4 and LIG4 can preassemble, and XLF joins the
-    # scaffold. This allows the ligation machinery to participate in the
-    # long-range synaptic complex rather than appearing only at the end.
+    # Ligation machinery. XRCC4 and LIG4 can preassemble, and XLF joins the scaffold. This allows the ligation machinery
+    # to participate in the long-range synaptic complex rather than appearing only at the end.
     Monomer("XRCC4", ["lig4", "xlf", "ku_pair"])
     Monomer("LIG4", ["xrcc4"])
     Monomer("XLF", ["xrcc4"])
 
-    alias_model_components()
-
     # ------------------------------------------------------------------
     # PARAMETERS / INITIAL CONDITIONS
     # ------------------------------------------------------------------
-    # These concentrations and kinetic values are placeholders, consistent
-    # with the current project style. They should be fit or revised when
-    # experimental constraints are introduced.
+    # These concentrations and kinetic values are placeholders, consistent with the current project style. They should
+    # be fit or revised when experimental constraints are introduced.
 
     Parameter("Ku70_80_0", 1000)
     Parameter("DNA_PKcs_0", 1000)
@@ -123,21 +109,16 @@ def create_model_elements(define_observables=True):
     if define_observables:
         Observable("Ku70_80_monomer", Ku70_80())
         Observable("Ku70_80_pair_total", Ku70_80_pair())
+
         alias_model_components()
+
         Expression("Ku70_80_tot", Ku70_80_monomer + 2 * Ku70_80_pair_total)
 
         Observable("Ku70_80_free", Ku70_80(dsb=None))
-        Observable(
-            "Ku70_80_single_DSB",
-            DSB(b=1) % Ku70_80(dsb=1)
-        )
-        Observable(
-            "Ku70_80_pair_DSB",
-            DSB(b=1) % Ku70_80_pair(dsb=1)
-        )
+        Observable("Ku70_80_single_DSB", DSB(b=1) % Ku70_80(dsb=1))
+        Observable("Ku70_80_pair_DSB", DSB(b=1) % Ku70_80_pair(dsb=1))
 
-        Observable("DNA_PKcs_free",
-                   DNA_PKcs(ku_pair=None, artemis=None, state="inactive"))
+        Observable("DNA_PKcs_free", DNA_PKcs(ku_pair=None, artemis=None, state="inactive"))
         Observable("DNA_PKcs_bound", DNA_PKcs(ku_pair=ANY))
         Observable("DNA_PKcs_active", DNA_PKcs(state="active"))
 
@@ -149,19 +130,14 @@ def create_model_elements(define_observables=True):
         Observable("PolLambda_free", PolLambda(ku_pair=None))
         Observable("PolLambda_bound", PolLambda(ku_pair=ANY))
 
-        Observable("XRCC4_free",
-                   XRCC4(lig4=None, xlf=None, ku_pair=None))
+        Observable("XRCC4_free", XRCC4(lig4=None, xlf=None, ku_pair=None))
         Observable("XRCC4_LIG4", XRCC4(lig4=ANY))
         Observable("XLF_bound", XLF(xrcc4=ANY))
 
-        Observable("cNHEJ_long_range",
-                   Ku70_80_pair(stage="long_range"))
-        Observable("cNHEJ_short_range",
-                   Ku70_80_pair(stage="short_range"))
-        Observable("cNHEJ_short_range_gap",
-                   Ku70_80_pair(stage="short_range", end_state="gap"))
-        Observable("cNHEJ_ligation_ready",
-                   Ku70_80_pair(stage="short_range", end_state="ready"))
+        Observable("cNHEJ_long_range", Ku70_80_pair(stage="long_range"))
+        Observable("cNHEJ_short_range", Ku70_80_pair(stage="short_range"))
+        Observable("cNHEJ_short_range_gap", Ku70_80_pair(stage="short_range", end_state="gap"))
+        Observable("cNHEJ_ligation_ready", Ku70_80_pair(stage="short_range", end_state="ready"))
 
     # ------------------------------------------------------------------
     # A. DSB RECOGNITION: Ku70/80 BINDS THE DNA ENDS
@@ -169,42 +145,25 @@ def create_model_elements(define_observables=True):
 
     Parameter("kf_DSB_Ku70_80", 1)
     Parameter("kr_DSB_Ku70_80", 10)
+
     alias_model_components()
 
     # First Ku70/80 binds the one shared PySB DSB binding site.
-    Rule(
-        "Ku70_80_binds_DSB",
-        DSB(b=None) + Ku70_80(dsb=None)
-        |
-        DSB(b=1) % Ku70_80(dsb=1),
-        kf_DSB_Ku70_80,
-        kr_DSB_Ku70_80,
-    )
+    Rule("Ku70_80_binds_DSB", DSB(b=None) + Ku70_80(dsb=None) | DSB(b=1) % Ku70_80(dsb=1),
+         kf_DSB_Ku70_80, kr_DSB_Ku70_80)
 
     # A second physical Ku70/80 occupies the other DNA end. Because DSB has
     # only one PySB binding site, the two Ku molecules are replaced by a
     # lumped Ku70_80_pair that remains attached through DSB(b).
     Parameter("kf_second_Ku70_80", 1)
     Parameter("kr_second_Ku70_80", 10)
+
     alias_model_components()
 
-    Rule(
-        "Second_Ku70_80_forms_Ku_pair",
-        DSB(b=1) % Ku70_80(dsb=1) + Ku70_80(dsb=None)
-        |
-        DSB(b=1) %
-        Ku70_80_pair(
-            dsb=1,
-            dnapk1=None,
-            dnapk2=None,
-            xrcc4=None,
-            pol=None,
-            stage="assembling",
-            end_state="unclassified",
-        ),
-        kf_second_Ku70_80,
-        kr_second_Ku70_80,
-    )
+    Rule("Second_Ku70_80_forms_Ku_pair",
+         DSB(b=1) % Ku70_80(dsb=1) + Ku70_80(dsb=None) |
+         DSB(b=1) % Ku70_80_pair(dsb=1, dnapk1=None, dnapk2=None, xrcc4=None, pol=None, stage="assembling",
+                                 end_state="unclassified"), kf_second_Ku70_80, kr_second_Ku70_80)
 
     # ------------------------------------------------------------------
     # B. DNA-PK ASSEMBLY: DNA-PKcs BINDS THE TWO Ku-BOUND ENDS
@@ -214,55 +173,25 @@ def create_model_elements(define_observables=True):
     Parameter("kr_DNA_PKcs_Ku_end1", 10)
     Parameter("kf_DNA_PKcs_Ku_end2", 1)
     Parameter("kr_DNA_PKcs_Ku_end2", 10)
+
     alias_model_components()
 
-    Rule(
-        "DNA_PKcs_binds_Ku_pair_end1",
-        DNA_PKcs(ku_pair=None, artemis=None, state="inactive")
-        +
-        DSB(b=1) %
-        Ku70_80_pair(
-            dsb=1,
-            dnapk1=None,
-            stage="assembling",
-        )
-        |
-        DNA_PKcs(ku_pair=2, artemis=None, state="inactive") %
-        DSB(b=1) %
-        Ku70_80_pair(
-            dsb=1,
-            dnapk1=2,
-            stage="assembling",
-        ),
-        kf_DNA_PKcs_Ku_end1,
-        kr_DNA_PKcs_Ku_end1,
-    )
+    Rule("DNA_PKcs_binds_Ku_pair_end1",
+         DNA_PKcs(ku_pair=None, artemis=None, state="inactive") +
+         DSB(b=1) % Ku70_80_pair(dsb=1, dnapk1=None, stage="assembling") |
+         DNA_PKcs(ku_pair=2, artemis=None, state="inactive") % DSB(b=1) % Ku70_80_pair(dsb=1, dnapk1=2,
+                                                                                       stage="assembling"),
+         kf_DNA_PKcs_Ku_end1, kr_DNA_PKcs_Ku_end1)
 
-    Rule(
-        "DNA_PKcs_binds_Ku_pair_end2",
-        DNA_PKcs(ku_pair=None, artemis=None, state="inactive")
-        +
-        DNA_PKcs(ku_pair=2, artemis=None, state="inactive") %
-        DSB(b=1) %
-        Ku70_80_pair(
-            dsb=1,
-            dnapk1=2,
-            dnapk2=None,
-            stage="assembling",
-        )
-        |
-        DNA_PKcs(ku_pair=3, artemis=None, state="inactive") %
-        DNA_PKcs(ku_pair=2, artemis=None, state="inactive") %
-        DSB(b=1) %
-        Ku70_80_pair(
-            dsb=1,
-            dnapk1=2,
-            dnapk2=3,
-            stage="assembling",
-        ),
-        kf_DNA_PKcs_Ku_end2,
-        kr_DNA_PKcs_Ku_end2,
-    )
+    Rule("DNA_PKcs_binds_Ku_pair_end2",
+         DNA_PKcs(ku_pair=None, artemis=None, state="inactive") +
+         DNA_PKcs(ku_pair=2, artemis=None, state="inactive") % DSB(b=1) % Ku70_80_pair(dsb=1, dnapk1=2, dnapk2=None,
+                                                                                       stage="assembling")
+         |
+         DNA_PKcs(ku_pair=3, artemis=None, state="inactive") %
+         DNA_PKcs(ku_pair=2, artemis=None, state="inactive") % DSB(b=1) % Ku70_80_pair(dsb=1, dnapk1=2, dnapk2=3,
+                                                                                       stage="assembling"),
+         kf_DNA_PKcs_Ku_end2, kr_DNA_PKcs_Ku_end2)
 
     # ------------------------------------------------------------------
     # C. LIGATION-SCAFFOLD RECRUITMENT AND LONG-RANGE SYNAPSIS
@@ -271,6 +200,7 @@ def create_model_elements(define_observables=True):
     # XRCC4 and LIG4 are treated as a preassembling ligation complex.
     Parameter("kf_XRCC4_LIG4", 1)
     Parameter("kr_XRCC4_LIG4", 1)
+
     alias_model_components()
 
     Rule(
@@ -287,6 +217,7 @@ def create_model_elements(define_observables=True):
     # complete.
     Parameter("kf_XRCC4_LIG4_Ku_pair", 1)
     Parameter("kr_XRCC4_LIG4_Ku_pair", 10)
+
     alias_model_components()
 
     Rule(
@@ -315,6 +246,7 @@ def create_model_elements(define_observables=True):
     # XLF joins the XRCC4-LIG4 scaffold.
     Parameter("kf_XLF_XRCC4", 1)
     Parameter("kr_XLF_XRCC4", 10)
+
     alias_model_components()
 
     Rule(
@@ -346,6 +278,7 @@ def create_model_elements(define_observables=True):
     # Once the two DNA-PKcs molecules and XRCC4-LIG4-XLF scaffold are
     # present, the complex enters the long-range synaptic state.
     Parameter("k_long_range_synapsis", 1)
+
     alias_model_components()
 
     Rule(
@@ -392,6 +325,7 @@ def create_model_elements(define_observables=True):
     # individual DNA-PKcs phosphorylation sites while preserving the
     # mechanistically important protected -> processing/release transition.
     Parameter("k_DNA_PKcs_autophosphorylation", 1)
+
     alias_model_components()
 
     Rule(
@@ -431,6 +365,7 @@ def create_model_elements(define_observables=True):
 
     Parameter("k_ends_compatible", 1)
     Parameter("k_ends_damaged", 1)
+
     alias_model_components()
 
     Rule(
@@ -475,6 +410,7 @@ def create_model_elements(define_observables=True):
 
     Parameter("kf_Artemis_DNA_PKcs", 1)
     Parameter("kr_Artemis_DNA_PKcs", 10)
+
     alias_model_components()
 
     # One Artemis molecule represents the nuclease-processing event at the
@@ -514,6 +450,7 @@ def create_model_elements(define_observables=True):
     Parameter("k_Artemis_generates_ready_ends", 1)
     # ...or can leave a short gap that requires polymerase synthesis.
     Parameter("k_Artemis_leaves_gap", 1)
+
     alias_model_components()
 
     Rule(
@@ -584,6 +521,7 @@ def create_model_elements(define_observables=True):
     Parameter("k_DNA_PKcs_release_compatible", 1)
     Parameter("k_DNA_PKcs_release_ready", 1)
     Parameter("k_DNA_PKcs_release_gap", 1)
+
     alias_model_components()
 
     Rule(
@@ -702,6 +640,7 @@ def create_model_elements(define_observables=True):
 
     # Free activated DNA-PKcs is recycled back to the inactive pool.
     Parameter("k_DNA_PKcs_dephosphorylation", 1)
+
     alias_model_components()
 
     Rule(
@@ -724,6 +663,7 @@ def create_model_elements(define_observables=True):
     Parameter("kr_PolLambda_short_range", 10)
     Parameter("k_PolMu_gap_fill", 1)
     Parameter("k_PolLambda_gap_fill", 1)
+
     alias_model_components()
 
     Rule(
@@ -825,6 +765,7 @@ def create_model_elements(define_observables=True):
     # ------------------------------------------------------------------
 
     Parameter("k_LIG4_ligates_DSB", 1)
+
     alias_model_components()
 
     # Successful ligation consumes the DSB species. The lumped Ku pair is
