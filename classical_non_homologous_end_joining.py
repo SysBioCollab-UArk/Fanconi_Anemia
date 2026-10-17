@@ -149,7 +149,10 @@ def create_model_elements(define_observables=True):
     alias_model_components()
 
     # First Ku70/80 binds the one shared PySB DSB binding site.
-    Rule("Ku70_80_binds_DSB", DSB(b=None) + Ku70_80(dsb=None) | DSB(b=1) % Ku70_80(dsb=1),
+    Rule("Ku70_80_binds_DSB",
+         DSB(b=None) + Ku70_80(dsb=None)
+         |
+         DSB(b=1) % Ku70_80(dsb=1),
          kf_DSB_Ku70_80, kr_DSB_Ku70_80)
 
     # A second physical Ku70/80 occupies the other DNA end. Because DSB has
@@ -161,7 +164,8 @@ def create_model_elements(define_observables=True):
     alias_model_components()
 
     Rule("Second_Ku70_80_forms_Ku_pair",
-         DSB(b=1) % Ku70_80(dsb=1) + Ku70_80(dsb=None) |
+         DSB(b=1) % Ku70_80(dsb=1) + Ku70_80(dsb=None)
+         |
          DSB(b=1) % Ku70_80_pair(dsb=1, dnapk1=None, dnapk2=None, xrcc4=None, pol=None, stage="assembling",
                                  end_state="unclassified"), kf_second_Ku70_80, kr_second_Ku70_80)
 
@@ -178,7 +182,8 @@ def create_model_elements(define_observables=True):
 
     Rule("DNA_PKcs_binds_Ku_pair_end1",
          DNA_PKcs(ku_pair=None, artemis=None, state="inactive") +
-         DSB(b=1) % Ku70_80_pair(dsb=1, dnapk1=None, stage="assembling") |
+         DSB(b=1) % Ku70_80_pair(dsb=1, dnapk1=None, stage="assembling")
+         |
          DNA_PKcs(ku_pair=2, artemis=None, state="inactive") % DSB(b=1) % Ku70_80_pair(dsb=1, dnapk1=2,
                                                                                        stage="assembling"),
          kf_DNA_PKcs_Ku_end1, kr_DNA_PKcs_Ku_end1)
@@ -203,45 +208,26 @@ def create_model_elements(define_observables=True):
 
     alias_model_components()
 
-    Rule(
-        "XRCC4_binds_LIG4",
-        XRCC4(lig4=None, xlf=None, ku_pair=None) + LIG4(xrcc4=None)
-        |
-        XRCC4(lig4=1, xlf=None, ku_pair=None) % LIG4(xrcc4=1),
-        kf_XRCC4_LIG4,
-        kr_XRCC4_LIG4,
-    )
+    Rule("XRCC4_binds_LIG4",
+         XRCC4(lig4=None, xlf=None, ku_pair=None) + LIG4(xrcc4=None)
+         |
+         XRCC4(lig4=1, xlf=None, ku_pair=None) % LIG4(xrcc4=1),
+         kf_XRCC4_LIG4, kr_XRCC4_LIG4)
 
-    # The XRCC4-LIG4 complex can be recruited while the Ku/DNA-PK complex
-    # is assembling; it is not forced to wait until all end processing is
-    # complete.
+    # The XRCC4-LIG4 complex can be recruited while the Ku/DNA-PK complex is assembling; it is not forced to wait until
+    # all end processing is complete.
     Parameter("kf_XRCC4_LIG4_Ku_pair", 1)
     Parameter("kr_XRCC4_LIG4_Ku_pair", 10)
 
     alias_model_components()
 
-    Rule(
-        "XRCC4_LIG4_binds_Ku_pair",
-        XRCC4(lig4=4, xlf=None, ku_pair=None) % LIG4(xrcc4=4)
-        +
-        DSB(b=1) %
-        Ku70_80_pair(
-            dsb=1,
-            xrcc4=None,
-            stage="assembling",
-        )
-        |
-        DSB(b=1) %
-        Ku70_80_pair(
-            dsb=1,
-            xrcc4=3,
-            stage="assembling",
-        ) %
-        XRCC4(lig4=4, xlf=None, ku_pair=3) %
-        LIG4(xrcc4=4),
-        kf_XRCC4_LIG4_Ku_pair,
-        kr_XRCC4_LIG4_Ku_pair,
-    )
+    Rule("XRCC4_LIG4_binds_Ku_pair",
+         XRCC4(lig4=4, xlf=None, ku_pair=None) % LIG4(xrcc4=4) +
+         DSB(b=1) % Ku70_80_pair(dsb=1, xrcc4=None, stage="assembling")
+         |
+         DSB(b=1) % Ku70_80_pair(dsb=1, xrcc4=3, stage="assembling") % XRCC4(lig4=4, xlf=None, ku_pair=3) %
+         LIG4(xrcc4=4),
+         kf_XRCC4_LIG4_Ku_pair, kr_XRCC4_LIG4_Ku_pair)
 
     # XLF joins the XRCC4-LIG4 scaffold.
     Parameter("kf_XLF_XRCC4", 1)
@@ -249,31 +235,13 @@ def create_model_elements(define_observables=True):
 
     alias_model_components()
 
-    Rule(
-        "XLF_binds_XRCC4_at_DSB",
-        XLF(xrcc4=None)
-        +
-        DSB(b=1) %
-        Ku70_80_pair(
-            dsb=1,
-            xrcc4=3,
-            stage="assembling",
-        ) %
-        XRCC4(lig4=4, xlf=None, ku_pair=3) %
-        LIG4(xrcc4=4)
-        |
-        XLF(xrcc4=5) %
-        DSB(b=1) %
-        Ku70_80_pair(
-            dsb=1,
-            xrcc4=3,
-            stage="assembling",
-        ) %
-        XRCC4(lig4=4, xlf=5, ku_pair=3) %
-        LIG4(xrcc4=4),
-        kf_XLF_XRCC4,
-        kr_XLF_XRCC4,
-    )
+    Rule("XLF_binds_XRCC4_at_DSB",
+         XLF(xrcc4=None) + DSB(b=1) % Ku70_80_pair(dsb=1, xrcc4=3, stage="assembling") %
+         XRCC4(lig4=4, xlf=None, ku_pair=3) % LIG4(xrcc4=4)
+         |
+         XLF(xrcc4=5) % DSB(b=1) % Ku70_80_pair(dsb=1, xrcc4=3, stage="assembling") % XRCC4(lig4=4, xlf=5, ku_pair=3) %
+         LIG4(xrcc4=4),
+         kf_XLF_XRCC4, kr_XLF_XRCC4)
 
     # Once the two DNA-PKcs molecules and XRCC4-LIG4-XLF scaffold are
     # present, the complex enters the long-range synaptic state.
@@ -281,41 +249,17 @@ def create_model_elements(define_observables=True):
 
     alias_model_components()
 
-    Rule(
-        "Long_range_synapsis",
-        DNA_PKcs(ku_pair=2, artemis=None, state="inactive") %
-        DNA_PKcs(ku_pair=3, artemis=None, state="inactive") %
-        DSB(b=1) %
-        Ku70_80_pair(
-            dsb=1,
-            dnapk1=2,
-            dnapk2=3,
-            xrcc4=4,
-            pol=None,
-            stage="assembling",
-            end_state="unclassified",
-        ) %
-        XRCC4(lig4=5, xlf=6, ku_pair=4) %
-        LIG4(xrcc4=5) %
-        XLF(xrcc4=6)
-        >>
-        DNA_PKcs(ku_pair=2, artemis=None, state="inactive") %
-        DNA_PKcs(ku_pair=3, artemis=None, state="inactive") %
-        DSB(b=1) %
-        Ku70_80_pair(
-            dsb=1,
-            dnapk1=2,
-            dnapk2=3,
-            xrcc4=4,
-            pol=None,
-            stage="long_range",
-            end_state="unclassified",
-        ) %
-        XRCC4(lig4=5, xlf=6, ku_pair=4) %
-        LIG4(xrcc4=5) %
-        XLF(xrcc4=6),
-        k_long_range_synapsis,
-    )
+    Rule("Long_range_synapsis",
+         DNA_PKcs(ku_pair=2, artemis=None, state="inactive") % DNA_PKcs(ku_pair=3, artemis=None, state="inactive") %
+         DSB(b=1) % Ku70_80_pair(dsb=1, dnapk1=2, dnapk2=3, xrcc4=4, pol=None, stage="assembling",
+                                 end_state="unclassified") % XRCC4(lig4=5, xlf=6, ku_pair=4) % LIG4(xrcc4=5) %
+         XLF(xrcc4=6)
+         >>
+         DNA_PKcs(ku_pair=2, artemis=None, state="inactive") % DNA_PKcs(ku_pair=3, artemis=None, state="inactive") %
+         DSB(b=1) % Ku70_80_pair(dsb=1, dnapk1=2, dnapk2=3, xrcc4=4, pol=None, stage="long_range",
+                                 end_state="unclassified") % XRCC4(lig4=5, xlf=6, ku_pair=4) % LIG4(xrcc4=5) %
+         XLF(xrcc4=6),
+         k_long_range_synapsis)
 
     # ------------------------------------------------------------------
     # DNA-PKcs ACTIVATION / AUTOPHOSPHORYLATION
@@ -328,81 +272,39 @@ def create_model_elements(define_observables=True):
 
     alias_model_components()
 
-    Rule(
-        "DNA_PKcs_autophosphorylation",
-        DNA_PKcs(ku_pair=2, artemis=None, state="inactive") %
-        DNA_PKcs(ku_pair=3, artemis=None, state="inactive") %
-        DSB(b=1) %
-        Ku70_80_pair(
-            dsb=1,
-            dnapk1=2,
-            dnapk2=3,
-            stage="long_range",
-        )
-        >>
-        DNA_PKcs(ku_pair=2, artemis=None, state="active") %
-        DNA_PKcs(ku_pair=3, artemis=None, state="active") %
-        DSB(b=1) %
-        Ku70_80_pair(
-            dsb=1,
-            dnapk1=2,
-            dnapk2=3,
-            stage="long_range",
-        ),
-        k_DNA_PKcs_autophosphorylation,
-    )
+    Rule("DNA_PKcs_autophosphorylation",
+         DNA_PKcs(ku_pair=2, artemis=None, state="inactive") % DNA_PKcs(ku_pair=3, artemis=None, state="inactive") %
+         DSB(b=1) % Ku70_80_pair(dsb=1, dnapk1=2, dnapk2=3, stage="long_range")
+         >>
+         DNA_PKcs(ku_pair=2, artemis=None, state="active") % DNA_PKcs(ku_pair=3, artemis=None, state="active") %
+         DSB(b=1) % Ku70_80_pair(dsb=1, dnapk1=2, dnapk2=3, stage="long_range"),
+         k_DNA_PKcs_autophosphorylation)
 
     # ------------------------------------------------------------------
     # BRANCH: END STRUCTURE / PROCESSING REQUIREMENT
     # ------------------------------------------------------------------
-    # The shared DSB monomer does not encode DNA-end chemistry. Therefore
-    # the cNHEJ-specific Ku-pair carries a lumped end_state once long-range
-    # synapsis has formed. These two rules represent the fraction of breaks
-    # whose ends are already compatible versus those requiring Artemis.
+    # The shared DSB monomer does not encode DNA-end chemistry. Therefore the cNHEJ-specific Ku-pair carries a lumped
+    # end_state once long-range synapsis has formed. These two rules represent the fraction of breaks whose ends are
+    # already compatible versus those requiring Artemis.
     #
-    # Their relative rates can later be fit or replaced by experimentally
-    # constrained values.
+    # Their relative rates can later be fit or replaced by experimentally constrained values.
 
     Parameter("k_ends_compatible", 1)
     Parameter("k_ends_damaged", 1)
 
     alias_model_components()
 
-    Rule(
-        "Long_range_ends_are_compatible",
-        Ku70_80_pair(
-            stage="long_range",
-            end_state="unclassified",
-            dnapk1=ANY,
-            dnapk2=ANY,
-        )
-        >>
-        Ku70_80_pair(
-            stage="long_range",
-            end_state="compatible",
-            dnapk1=ANY,
-            dnapk2=ANY,
-        ),
-        k_ends_compatible,
-    )
+    Rule("Long_range_ends_are_compatible",
+         Ku70_80_pair(stage="long_range", end_state="unclassified", dnapk1=ANY, dnapk2=ANY)
+         >>
+         Ku70_80_pair(stage="long_range", end_state="compatible", dnapk1=ANY, dnapk2=ANY),
+         k_ends_compatible)
 
-    Rule(
-        "Long_range_ends_require_processing",
-        Ku70_80_pair(
-            stage="long_range",
-            end_state="unclassified",
-            dnapk1=ANY,
-            dnapk2=ANY,
-        )
-        >>
-        Ku70_80_pair(
-            stage="long_range",
-            end_state="damaged",
-            dnapk1=ANY,
-            dnapk2=ANY,
-        ),
-        k_ends_damaged,
-    )
+    Rule("Long_range_ends_require_processing",
+         Ku70_80_pair(stage="long_range", end_state="unclassified", dnapk1=ANY, dnapk2=ANY)
+         >>
+         Ku70_80_pair(stage="long_range", end_state="damaged", dnapk1=ANY, dnapk2=ANY),
+         k_ends_damaged)
 
     # ------------------------------------------------------------------
     # D. CONDITIONAL ARTEMIS PROCESSING
@@ -416,35 +318,15 @@ def create_model_elements(define_observables=True):
     # One Artemis molecule represents the nuclease-processing event at the
     # synapsed break. It binds an activated DNA-PKcs only when end processing
     # is required.
-    Rule(
-        "Artemis_binds_active_DNA_PKcs",
-        Artemis(dnapk=None)
-        +
-        DNA_PKcs(ku_pair=2, artemis=None, state="active") %
-        DNA_PKcs(ku_pair=3, artemis=None, state="active") %
-        DSB(b=1) %
-        Ku70_80_pair(
-            dsb=1,
-            dnapk1=2,
-            dnapk2=3,
-            stage="long_range",
-            end_state="damaged",
-        )
-        |
-        Artemis(dnapk=7) %
-        DNA_PKcs(ku_pair=2, artemis=7, state="active") %
-        DNA_PKcs(ku_pair=3, artemis=None, state="active") %
-        DSB(b=1) %
-        Ku70_80_pair(
-            dsb=1,
-            dnapk1=2,
-            dnapk2=3,
-            stage="long_range",
-            end_state="damaged",
-        ),
-        kf_Artemis_DNA_PKcs,
-        kr_Artemis_DNA_PKcs,
-    )
+    Rule("Artemis_binds_active_DNA_PKcs",
+         Artemis(dnapk=None) + DNA_PKcs(ku_pair=2, artemis=None, state="active") %
+         DNA_PKcs(ku_pair=3, artemis=None, state="active") % DSB(b=1) %
+         Ku70_80_pair(dsb=1, dnapk1=2, dnapk2=3, stage="long_range", end_state="damaged")
+         |
+         Artemis(dnapk=7) % DNA_PKcs(ku_pair=2, artemis=7, state="active") %
+         DNA_PKcs(ku_pair=3, artemis=None, state="active") % DSB(b=1) %
+         Ku70_80_pair(dsb=1, dnapk1=2, dnapk2=3, stage="long_range", end_state="damaged"),
+         kf_Artemis_DNA_PKcs, kr_Artemis_DNA_PKcs)
 
     # Artemis processing can make the termini directly ligation-ready...
     Parameter("k_Artemis_generates_ready_ends", 1)
@@ -453,70 +335,31 @@ def create_model_elements(define_observables=True):
 
     alias_model_components()
 
-    Rule(
-        "Artemis_processing_generates_ready_ends",
-        Artemis(dnapk=7) %
-        DNA_PKcs(ku_pair=2, artemis=7, state="active") %
-        DNA_PKcs(ku_pair=3, artemis=None, state="active") %
-        DSB(b=1) %
-        Ku70_80_pair(
-            dsb=1,
-            dnapk1=2,
-            dnapk2=3,
-            stage="long_range",
-            end_state="damaged",
-        )
-        >>
-        Artemis(dnapk=None)
-        +
-        DNA_PKcs(ku_pair=2, artemis=None, state="active") %
-        DNA_PKcs(ku_pair=3, artemis=None, state="active") %
-        DSB(b=1) %
-        Ku70_80_pair(
-            dsb=1,
-            dnapk1=2,
-            dnapk2=3,
-            stage="long_range",
-            end_state="ready",
-        ),
-        k_Artemis_generates_ready_ends,
-    )
+    Rule("Artemis_processing_generates_ready_ends",
+         Artemis(dnapk=7) % DNA_PKcs(ku_pair=2, artemis=7, state="active") %
+         DNA_PKcs(ku_pair=3, artemis=None, state="active") % DSB(b=1) %
+         Ku70_80_pair(dsb=1, dnapk1=2, dnapk2=3, stage="long_range", end_state="damaged")
+         >>
+         Artemis(dnapk=None) + DNA_PKcs(ku_pair=2, artemis=None, state="active") %
+         DNA_PKcs(ku_pair=3, artemis=None, state="active") % DSB(b=1) %
+         Ku70_80_pair(dsb=1, dnapk1=2, dnapk2=3, stage="long_range", end_state="ready"),
+         k_Artemis_generates_ready_ends)
 
-    Rule(
-        "Artemis_processing_leaves_gap",
-        Artemis(dnapk=7) %
-        DNA_PKcs(ku_pair=2, artemis=7, state="active") %
-        DNA_PKcs(ku_pair=3, artemis=None, state="active") %
-        DSB(b=1) %
-        Ku70_80_pair(
-            dsb=1,
-            dnapk1=2,
-            dnapk2=3,
-            stage="long_range",
-            end_state="damaged",
-        )
-        >>
-        Artemis(dnapk=None)
-        +
-        DNA_PKcs(ku_pair=2, artemis=None, state="active") %
-        DNA_PKcs(ku_pair=3, artemis=None, state="active") %
-        DSB(b=1) %
-        Ku70_80_pair(
-            dsb=1,
-            dnapk1=2,
-            dnapk2=3,
-            stage="long_range",
-            end_state="gap",
-        ),
-        k_Artemis_leaves_gap,
-    )
+    Rule("Artemis_processing_leaves_gap",
+         Artemis(dnapk=7) % DNA_PKcs(ku_pair=2, artemis=7, state="active") %
+         DNA_PKcs(ku_pair=3, artemis=None, state="active") % DSB(b=1) %
+         Ku70_80_pair(dsb=1, dnapk1=2, dnapk2=3, stage="long_range", end_state="damaged")
+         >>
+         Artemis(dnapk=None) + DNA_PKcs(ku_pair=2, artemis=None, state="active") %
+         DNA_PKcs(ku_pair=3, artemis=None, state="active") % DSB(b=1) %
+         Ku70_80_pair(dsb=1, dnapk1=2, dnapk2=3, stage="long_range", end_state="gap"),
+         k_Artemis_leaves_gap)
 
     # ------------------------------------------------------------------
     # E/F. DNA-PKcs REARRANGEMENT/RELEASE -> SHORT-RANGE SYNAPSIS
     # ------------------------------------------------------------------
-    # These rules lump DNA-PKcs rearrangement and departure into the
-    # long-range -> short-range transition. XRCC4-LIG4 and XLF remain at
-    # the break.
+    # These rules lump DNA-PKcs rearrangement and departure into the long-range -> short-range transition. XRCC4-LIG4
+    # and XLF remain at the break.
 
     Parameter("k_DNA_PKcs_release_compatible", 1)
     Parameter("k_DNA_PKcs_release_ready", 1)
@@ -524,132 +367,47 @@ def create_model_elements(define_observables=True):
 
     alias_model_components()
 
-    Rule(
-        "DNA_PKcs_release_from_compatible_ends",
-        DNA_PKcs(ku_pair=2, artemis=None, state="active") %
-        DNA_PKcs(ku_pair=3, artemis=None, state="active") %
-        DSB(b=1) %
-        Ku70_80_pair(
-            dsb=1,
-            dnapk1=2,
-            dnapk2=3,
-            xrcc4=4,
-            pol=None,
-            stage="long_range",
-            end_state="compatible",
-        ) %
-        XRCC4(lig4=5, xlf=6, ku_pair=4) %
-        LIG4(xrcc4=5) %
-        XLF(xrcc4=6)
-        >>
-        DNA_PKcs(ku_pair=None, artemis=None, state="active")
-        +
-        DNA_PKcs(ku_pair=None, artemis=None, state="active")
-        +
-        DSB(b=1) %
-        Ku70_80_pair(
-            dsb=1,
-            dnapk1=None,
-            dnapk2=None,
-            xrcc4=4,
-            pol=None,
-            stage="short_range",
-            end_state="ready",
-        ) %
-        XRCC4(lig4=5, xlf=6, ku_pair=4) %
-        LIG4(xrcc4=5) %
-        XLF(xrcc4=6),
-        k_DNA_PKcs_release_compatible,
-    )
+    Rule("DNA_PKcs_release_from_compatible_ends",
+         DNA_PKcs(ku_pair=2, artemis=None, state="active") % DNA_PKcs(ku_pair=3, artemis=None, state="active") %
+         DSB(b=1) % Ku70_80_pair(dsb=1, dnapk1=2, dnapk2=3, xrcc4=4, pol=None, stage="long_range",
+                                 end_state="compatible") % XRCC4(lig4=5, xlf=6, ku_pair=4) % LIG4(xrcc4=5) %
+         XLF(xrcc4=6)
+         >>
+         DNA_PKcs(ku_pair=None, artemis=None, state="active") + DNA_PKcs(ku_pair=None, artemis=None, state="active") +
+         DSB(b=1) % Ku70_80_pair(dsb=1, dnapk1=None, dnapk2=None, xrcc4=4, pol=None, stage="short_range",
+                                 end_state="ready") % XRCC4(lig4=5, xlf=6, ku_pair=4) % LIG4(xrcc4=5) % XLF(xrcc4=6),
+         k_DNA_PKcs_release_compatible)
 
-    Rule(
-        "DNA_PKcs_release_after_processing_ready",
-        DNA_PKcs(ku_pair=2, artemis=None, state="active") %
-        DNA_PKcs(ku_pair=3, artemis=None, state="active") %
-        DSB(b=1) %
-        Ku70_80_pair(
-            dsb=1,
-            dnapk1=2,
-            dnapk2=3,
-            xrcc4=4,
-            pol=None,
-            stage="long_range",
-            end_state="ready",
-        ) %
-        XRCC4(lig4=5, xlf=6, ku_pair=4) %
-        LIG4(xrcc4=5) %
-        XLF(xrcc4=6)
-        >>
-        DNA_PKcs(ku_pair=None, artemis=None, state="active")
-        +
-        DNA_PKcs(ku_pair=None, artemis=None, state="active")
-        +
-        DSB(b=1) %
-        Ku70_80_pair(
-            dsb=1,
-            dnapk1=None,
-            dnapk2=None,
-            xrcc4=4,
-            pol=None,
-            stage="short_range",
-            end_state="ready",
-        ) %
-        XRCC4(lig4=5, xlf=6, ku_pair=4) %
-        LIG4(xrcc4=5) %
-        XLF(xrcc4=6),
-        k_DNA_PKcs_release_ready,
-    )
+    Rule("DNA_PKcs_release_after_processing_ready",
+         DNA_PKcs(ku_pair=2, artemis=None, state="active") % DNA_PKcs(ku_pair=3, artemis=None, state="active") %
+         DSB(b=1) % Ku70_80_pair(dsb=1, dnapk1=2, dnapk2=3, xrcc4=4, pol=None, stage="long_range", end_state="ready") %
+         XRCC4(lig4=5, xlf=6, ku_pair=4) % LIG4(xrcc4=5) % XLF(xrcc4=6)
+         >>
+         DNA_PKcs(ku_pair=None, artemis=None, state="active") + DNA_PKcs(ku_pair=None, artemis=None, state="active") +
+         DSB(b=1) % Ku70_80_pair(dsb=1, dnapk1=None, dnapk2=None, xrcc4=4, pol=None, stage="short_range",
+                                 end_state="ready") % XRCC4(lig4=5, xlf=6, ku_pair=4) % LIG4(xrcc4=5) % XLF(xrcc4=6),
+         k_DNA_PKcs_release_ready)
 
-    Rule(
-        "DNA_PKcs_release_after_processing_gap",
-        DNA_PKcs(ku_pair=2, artemis=None, state="active") %
-        DNA_PKcs(ku_pair=3, artemis=None, state="active") %
-        DSB(b=1) %
-        Ku70_80_pair(
-            dsb=1,
-            dnapk1=2,
-            dnapk2=3,
-            xrcc4=4,
-            pol=None,
-            stage="long_range",
-            end_state="gap",
-        ) %
-        XRCC4(lig4=5, xlf=6, ku_pair=4) %
-        LIG4(xrcc4=5) %
-        XLF(xrcc4=6)
-        >>
-        DNA_PKcs(ku_pair=None, artemis=None, state="active")
-        +
-        DNA_PKcs(ku_pair=None, artemis=None, state="active")
-        +
-        DSB(b=1) %
-        Ku70_80_pair(
-            dsb=1,
-            dnapk1=None,
-            dnapk2=None,
-            xrcc4=4,
-            pol=None,
-            stage="short_range",
-            end_state="gap",
-        ) %
-        XRCC4(lig4=5, xlf=6, ku_pair=4) %
-        LIG4(xrcc4=5) %
-        XLF(xrcc4=6),
-        k_DNA_PKcs_release_gap,
-    )
+    Rule("DNA_PKcs_release_after_processing_gap",
+         DNA_PKcs(ku_pair=2, artemis=None, state="active") % DNA_PKcs(ku_pair=3, artemis=None, state="active") %
+         DSB(b=1) % Ku70_80_pair(dsb=1, dnapk1=2, dnapk2=3, xrcc4=4, pol=None, stage="long_range", end_state="gap") %
+         XRCC4(lig4=5, xlf=6, ku_pair=4) % LIG4(xrcc4=5) % XLF(xrcc4=6)
+         >>
+         DNA_PKcs(ku_pair=None, artemis=None, state="active") + DNA_PKcs(ku_pair=None, artemis=None, state="active") +
+         DSB(b=1) % Ku70_80_pair(dsb=1, dnapk1=None, dnapk2=None, xrcc4=4, pol=None, stage="short_range",
+                                 end_state="gap") % XRCC4(lig4=5, xlf=6, ku_pair=4) % LIG4(xrcc4=5) % XLF(xrcc4=6),
+         k_DNA_PKcs_release_gap)
 
     # Free activated DNA-PKcs is recycled back to the inactive pool.
     Parameter("k_DNA_PKcs_dephosphorylation", 1)
 
     alias_model_components()
 
-    Rule(
-        "DNA_PKcs_dephosphorylation",
-        DNA_PKcs(ku_pair=None, artemis=None, state="active")
-        >>
-        DNA_PKcs(ku_pair=None, artemis=None, state="inactive"),
-        k_DNA_PKcs_dephosphorylation,
-    )
+    Rule("DNA_PKcs_dephosphorylation",
+         DNA_PKcs(ku_pair=None, artemis=None, state="active")
+         >>
+         DNA_PKcs(ku_pair=None, artemis=None, state="inactive"),
+         k_DNA_PKcs_dephosphorylation)
 
     # ------------------------------------------------------------------
     # G. CONDITIONAL POLYMERASE STEP
@@ -666,99 +424,29 @@ def create_model_elements(define_observables=True):
 
     alias_model_components()
 
-    Rule(
-        "PolMu_binds_short_range_gap",
-        PolMu(ku_pair=None)
-        +
-        DSB(b=1) %
-        Ku70_80_pair(
-            dsb=1,
-            pol=None,
-            stage="short_range",
-            end_state="gap",
-        )
-        |
-        PolMu(ku_pair=7) %
-        DSB(b=1) %
-        Ku70_80_pair(
-            dsb=1,
-            pol=7,
-            stage="short_range",
-            end_state="gap",
-        ),
-        kf_PolMu_short_range,
-        kr_PolMu_short_range,
-    )
+    Rule("PolMu_binds_short_range_gap",
+         PolMu(ku_pair=None) + DSB(b=1) % Ku70_80_pair(dsb=1, pol=None, stage="short_range", end_state="gap")
+         |
+         PolMu(ku_pair=7) % DSB(b=1) % Ku70_80_pair(dsb=1, pol=7, stage="short_range", end_state="gap"),
+         kf_PolMu_short_range, kr_PolMu_short_range)
 
-    Rule(
-        "PolLambda_binds_short_range_gap",
-        PolLambda(ku_pair=None)
-        +
-        DSB(b=1) %
-        Ku70_80_pair(
-            dsb=1,
-            pol=None,
-            stage="short_range",
-            end_state="gap",
-        )
-        |
-        PolLambda(ku_pair=7) %
-        DSB(b=1) %
-        Ku70_80_pair(
-            dsb=1,
-            pol=7,
-            stage="short_range",
-            end_state="gap",
-        ),
-        kf_PolLambda_short_range,
-        kr_PolLambda_short_range,
-    )
+    Rule("PolLambda_binds_short_range_gap",
+         PolLambda(ku_pair=None) + DSB(b=1) % Ku70_80_pair(dsb=1, pol=None, stage="short_range", end_state="gap")
+         |
+         PolLambda(ku_pair=7) % DSB(b=1) % Ku70_80_pair(dsb=1, pol=7, stage="short_range", end_state="gap"),
+         kf_PolLambda_short_range, kr_PolLambda_short_range)
 
-    Rule(
-        "PolMu_fills_gap",
-        PolMu(ku_pair=7) %
-        DSB(b=1) %
-        Ku70_80_pair(
-            dsb=1,
-            pol=7,
-            stage="short_range",
-            end_state="gap",
-        )
-        >>
-        PolMu(ku_pair=None)
-        +
-        DSB(b=1) %
-        Ku70_80_pair(
-            dsb=1,
-            pol=None,
-            stage="short_range",
-            end_state="ready",
-        ),
-        k_PolMu_gap_fill,
-    )
+    Rule("PolMu_fills_gap",
+         PolMu(ku_pair=7) % DSB(b=1) % Ku70_80_pair(dsb=1, pol=7, stage="short_range", end_state="gap")
+         >>
+         PolMu(ku_pair=None) + DSB(b=1) % Ku70_80_pair(dsb=1, pol=None, stage="short_range", end_state="ready"),
+         k_PolMu_gap_fill)
 
-    Rule(
-        "PolLambda_fills_gap",
-        PolLambda(ku_pair=7) %
-        DSB(b=1) %
-        Ku70_80_pair(
-            dsb=1,
-            pol=7,
-            stage="short_range",
-            end_state="gap",
-        )
-        >>
-        PolLambda(ku_pair=None)
-        +
-        DSB(b=1) %
-        Ku70_80_pair(
-            dsb=1,
-            pol=None,
-            stage="short_range",
-            end_state="ready",
-        ),
-        k_PolLambda_gap_fill,
-    )
+    Rule("PolLambda_fills_gap",
+         PolLambda(ku_pair=7) % DSB(b=1) % Ku70_80_pair(dsb=1, pol=7, stage="short_range", end_state="gap")
+         >>
+         PolLambda(ku_pair=None) + DSB(b=1) % Ku70_80_pair(dsb=1, pol=None, stage="short_range", end_state="ready"),
+         k_PolLambda_gap_fill)
 
     # ------------------------------------------------------------------
     # H/I. LIG4-MEDIATED LIGATION AND REPAIR-COMPLEX DISSOCIATION
@@ -768,42 +456,20 @@ def create_model_elements(define_observables=True):
 
     alias_model_components()
 
-    # Successful ligation consumes the DSB species. The lumped Ku pair is
-    # converted back into two free Ku70/80 heterodimers, while XRCC4, LIG4,
-    # and XLF are recycled.
-    Rule(
-        "LIG4_ligates_DSB",
-        DSB(b=1) %
-        Ku70_80_pair(
-            dsb=1,
-            dnapk1=None,
-            dnapk2=None,
-            xrcc4=4,
-            pol=None,
-            stage="short_range",
-            end_state="ready",
-        ) %
-        XRCC4(lig4=5, xlf=6, ku_pair=4) %
-        LIG4(xrcc4=5) %
-        XLF(xrcc4=6)
-        >>
-        Ku70_80(dsb=None)
-        +
-        Ku70_80(dsb=None)
-        +
-        XRCC4(lig4=None, xlf=None, ku_pair=None)
-        +
-        LIG4(xrcc4=None)
-        +
-        XLF(xrcc4=None),
-        k_LIG4_ligates_DSB,
-    )
+    # Successful ligation consumes the DSB species. The lumped Ku pair is converted back into two free Ku70/80
+    # heterodimers, while XRCC4, LIG4, and XLF are recycled.
+    Rule("LIG4_ligates_DSB",
+         DSB(b=1) % Ku70_80_pair(dsb=1, dnapk1=None, dnapk2=None, xrcc4=4, pol=None, stage="short_range",
+                                 end_state="ready") % XRCC4(lig4=5, xlf=6, ku_pair=4) % LIG4(xrcc4=5) % XLF(xrcc4=6)
+         >>
+         Ku70_80(dsb=None) + Ku70_80(dsb=None) + XRCC4(lig4=None, xlf=None, ku_pair=None) + LIG4(xrcc4=None) +
+         XLF(xrcc4=None),
+         k_LIG4_ligates_DSB)
 
 
 if __name__ == "__main__":
-    # Standalone test harness. Shared components are defined here only for
-    # testing this module by itself. In FA_merged_model.py, DSB should remain
-    # defined centrally as Monomer("DSB", ["b"]).
+    # Standalone test harness. Shared components are defined here only for testing this module by itself. In
+    # FA_merged_model.py, DSB should remain defined centrally as Monomer("DSB", ["b"]).
 
     from pysb.simulator import ScipyOdeSimulator
     import numpy as np
@@ -828,51 +494,24 @@ if __name__ == "__main__":
     # DSB dynamics
     plt.figure(constrained_layout=True)
     for obs in [DSB_tot, DSB_free]:
-        plt.plot(
-            tspan,
-            output.observables[obs.name],
-            lw=2,
-            label=obs.name,
-        )
+        plt.plot(tspan, output.observables[obs.name], lw=2, label=obs.name)
     plt.xlabel("time")
     plt.ylabel("concentration")
     plt.legend(loc="best")
 
     # cNHEJ progression
     plt.figure(constrained_layout=True)
-    for obs in [
-        Ku70_80_single_DSB,
-        Ku70_80_pair_DSB,
-        cNHEJ_long_range,
-        cNHEJ_short_range,
-        cNHEJ_short_range_gap,
-        cNHEJ_ligation_ready,
-    ]:
-        plt.plot(
-            tspan,
-            output.observables[obs.name],
-            lw=2,
-            label=obs.name,
-        )
+    for obs in [Ku70_80_single_DSB, Ku70_80_pair_DSB, cNHEJ_long_range, cNHEJ_short_range, cNHEJ_short_range_gap,
+                cNHEJ_ligation_ready]:
+        plt.plot(tspan, output.observables[obs.name], lw=2, label=obs.name)
     plt.xlabel("time")
     plt.ylabel("concentration")
     plt.legend(loc="best")
 
     # Processing proteins
     plt.figure(constrained_layout=True)
-    for obs in [
-        DNA_PKcs_bound,
-        DNA_PKcs_active,
-        Artemis_bound,
-        PolMu_bound,
-        PolLambda_bound,
-    ]:
-        plt.plot(
-            tspan,
-            output.observables[obs.name],
-            lw=2,
-            label=obs.name,
-        )
+    for obs in [DNA_PKcs_bound, DNA_PKcs_active, Artemis_bound, PolMu_bound, PolLambda_bound]:
+        plt.plot(tspan, output.observables[obs.name], lw=2, label=obs.name)
     plt.xlabel("time")
     plt.ylabel("concentration")
     plt.legend(loc="best")
